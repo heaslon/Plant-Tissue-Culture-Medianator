@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Tissue Culture Media Comparison Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-body: #0f172a;
+            --bg-container: #1e293b;
+            --bg-sidebar: #334155;
+            --bg-box: #1e293b;
+            --text-main: #f1f5f9;
+            --text-heading: #ffffff;
+            --text-muted: #cbd5e1;
+            --border-ui: #475569;
+            --border-input: #475569;
+            --grid-color: rgba(255, 255, 255, 0.1);
+            --warn-color: #fbbf24;
+            --lab-blue: #0284c7;
+            --lab-panel-bg: #0275b2;
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f8fafc;
+            --bg-container: #ffffff;
+            --bg-sidebar: #f1f5f9;
+            --bg-box: #ffffff;
+            --text-main: #1e293b;
+            --text-heading: #0f172a;
+            --text-muted: #475569;
+            --border-ui: #e2e8f0;
+            --border-input: #cbd5e1;
+            --grid-color: rgba(0, 0, 0, 0.05);
+            --warn-color: #b45309;
+            --lab-blue: #0284c7;
+            --lab-panel-bg: #0c4a6e;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .header-layout {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid var(--border-ui);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+        .container {
+            max-width: 1550px;
+            margin: 0 auto;
+            background: var(--bg-container);
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1px solid var(--border-ui);
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin: 0 0 4px 0;
+            color: var(--text-heading);
+        }
+        .subhead {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+        
+        .lab-trigger-box {
+            background: rgba(2, 132, 199, 0.15);
+            border: 1px solid var(--lab-blue);
+            border-radius: 6px;
+            padding: 6px 12px;
+            text-align: center;
+            max-width: 240px;
+        }
+        .lab-btn {
+            background: var(--lab-blue);
+            color: #fff;
+            border: none;
+            padding: 6px 16px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .lab-btn:hover {
+            background: #0369a1;
+        }
+        .lab-trigger-box p {
+            margin: 4px 0 0 0;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            line-height: 1.2;
+        }
+
+        .control-layout {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 24px;
+            margin-bottom: 20px;
+        }
+        .sidebar-controls {
+            background: var(--bg-sidebar);
+            padding: 16px;
+            border-radius: 6px;
+            height: fit-content;
+        }
+        .section-title {
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 18px;
+            max-height: 320px;
+            overflow-y: auto;
+            background: var(--bg-box);
+            padding: 10px;
+            border: 1px solid var(--border-input);
+            border-radius: 4px;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            user-select: none;
+            color: var(--text-main);
+        }
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 18px;
+        }
+        .toggle-container {
+            border-top: 1px solid var(--border-input);
+            padding-top: 12px;
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            min-height: 500px;
+            width: 100%;
+            min-width: 0; 
+        }
+        .charts-container.split-view {
+            grid-template-columns: 1fr 1fr;
+        }
+        .chart-box {
+            background: var(--bg-box);
+            border: 1px solid var(--border-ui);
+            border-radius: 6px;
+            padding: 12px;
+            position: relative;
+            height: 500px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .chart-box canvas {
+            position: absolute;
+            left: 12px;
+            top: 12px;
+            width: calc(100% - 24px) !important;
+            height: calc(100% - 24px) !important;
+        }
+        
+        .lab-panel {
+            background: #0271a8;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 20px;
+            color: #ffffff;
+            border: 1px solid #005a87;
+        }
+        .lab-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .lab-panel-title {
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        .lab-tabs {
+            display: flex;
+            gap: 6px;
+        }
+        .lab-tab-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .lab-tab-btn.active {
+            background: #ffffff;
+            color: #0271a8;
+            font-weight: bold;
+        }
+        .lab-sliders-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px 16px;
+            max-height: 240px;
+            overflow-y: auto;
+            margin-bottom: 14px;
+            padding-right: 4px;
+        }
+        .slider-item {
+            background: rgba(0, 0, 0, 0.15);
+            padding: 8px 10px;
+            border-radius: 4px;
+        }
+        .slider-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        .slider-item input type="range" {
+            width: 100%;
+            margin: 0;
+            cursor: pointer;
+        }
+        .lab-panel-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 12px;
+        }
+        .lab-footer-btns {
+            display: flex;
+            gap: 8px;
+        }
+        .lab-save-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .lab-exit-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .bulk-btn {
+            background: none;
+            border: none;
+            color: #60a5fa;
+            font-size: 0.75rem;
+            cursor: pointer;
+            padding: 0;
+            text-decoration: underline;
+        }
+        [data-theme="light"] .bulk-btn {
+            color: #2563eb;
+        }
+        .sources-panel {
+            margin-top: 20px;
+            background: var(--bg-box);
+            border: 1px solid var(--border-ui);
+            border-radius: 6px;
+            padding: 14px 16px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .sources-panel h3 {
+            margin: 0 0 8px 0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-main);
+        }
+        .sources-panel ul {
+            margin: 0;
+            padding-left: 18px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 20px;
+        }
+        .sources-panel li {
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+        .sources-panel .unverified-tag {
+            color: var(--warn-color);
+            font-weight: 600;
+        }
+        .method-note {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-input);
+            font-size: 0.75rem;
+        }
+        .print-btn {
+            width: 100%;
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            padding: 9px 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+        .print-btn:hover {
+            background: #1d4ed8;
+        }
+        .print-btn.secondary {
+            background: #059669;
+            margin-bottom: 18px;
+        }
+        .print-btn.secondary:hover {
+            background: #047857;
+        }
+        .print-hint {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin: -12px 0 18px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-layout">
+        <div>
+            <h1>Plant Tissue Culture Media Comparison Tool</h1>
+            <p class="subhead">Ion values are calculated from salt masses, not hand-entered &mdash; see "Calculation method" below.</p>
+        </div>
+        <div class="lab-trigger-box">
+            <button class="lab-btn" id="enterLabBtn">Enter Recipe Lab</button>
+            <p>Copies the currently selected recipe into the lab for interactive editing</p>
+        </div>
+    </div>
+    
+    <div class="control-layout">
+        <div class="sidebar-controls">
+            
+            <div class="section-title">
+                <span>Formulations</span>
+                <button class="bulk-btn" id="toggleAllMedia">Clear All</button>
+            </div>
+            <div class="checkbox-group" id="mediaCheckboxes">
+                <!-- Priority Tier -->
+                <label class="checkbox-label" style="font-weight: bold; color: #60a5fa;"><input type="checkbox" value="ms" checked> Murashige & Skoog (MS)</label>
+                <label class="checkbox-label" style="font-weight: bold; color: #60a5fa;"><input type="checkbox" value="dkw" checked> DKW Basal Salts</label>
+                <label class="checkbox-label" style="font-weight: bold; color: #60a5fa;"><input type="checkbox" value="wpm"> Woody Plant (WPM)</label>
+                <label class="checkbox-label"><input type="checkbox" value="b5"> Gamborg B-5 Medium</label>
+                <label class="checkbox-label"><input type="checkbox" value="ql"> Quoirin & Lepoivre (QL)</label>
+                <label class="checkbox-label"><input type="checkbox" value="rugini"> Rugini Olive Medium (OL)</label>
+                <label class="checkbox-label"><input type="checkbox" value="knudson"> Knudson C (Fern/Orchid)</label>
+                <hr style="border: 0; border-top: 1px solid var(--border-input); margin: 4px 0; width: 100%;">
+                <!-- Alphabetical Tier -->
+                <label class="checkbox-label"><input type="checkbox" value="anderson"> Anderson Basal Salts</label>
+                <label class="checkbox-label"><input type="checkbox" value="blaydes"> Blaydes Modified Medium</label>
+                <label class="checkbox-label"><input type="checkbox" value="chee"> Chee & Pool C2d Vitis</label>
+                <label class="checkbox-label"><input type="checkbox" value="chu"> Chu N6 Basal Salts</label>
+                <label class="checkbox-label"><input type="checkbox" value="heller"> Heller Basal Mixture</label>
+                <label class="checkbox-label"><input type="checkbox" value="hoagland"> Hoagland Modified Salts</label>
+                <label class="checkbox-label"><input type="checkbox" value="nn"> Nitsch & Nitsch (NN)</label>
+                <label class="checkbox-label"><input type="checkbox" value="pct_houseplant"> PCT Houseplant Mix</label>
+                <label class="checkbox-label"><input type="checkbox" value="ree"> Ree QD 1 Medium</label>
+                <label class="checkbox-label"><input type="checkbox" value="sh"> Schenk & Hildebrandt (SH)</label>
+                <label class="checkbox-label"><input type="checkbox" value="sfn"> SFN (Sierra Gold Nurseries)</label>
+                <label class="checkbox-label"><input type="checkbox" value="tm4g"> TM4G Basal Salts</label>
+                <label class="checkbox-label"><input type="checkbox" value="white"> White's Basal Medium</label>
+            </div>
+
+            <button class="print-btn" id="printRecipeBtn">🖨️ Print Stock Sheets</button>
+            <button class="print-btn secondary" id="printRawMgBtn">⚖️ Print Recipes</button>
+            <p class="print-hint">Generates clean printable sheets for checked formulations (opens in a new tab).</p>
+
+            <div class="section-title">Graph View</div>
+            <div class="radio-group">
+                <label class="checkbox-label"><input type="radio" name="component" value="macro" checked> Macronutrient Ions</label>
+                <label class="checkbox-label"><input type="radio" name="component" value="macroSalts"> Macronutrient Salts</label>
+                <label class="checkbox-label"><input type="radio" name="component" value="micro" > Micronutrient Ions (Split)</label>
+                <label class="checkbox-label"><input type="radio" name="component" value="microSalts"> Micronutrient Salts (Split)</label>
+                <label class="checkbox-label"><input type="radio" name="component" value="organic"> Organics & Vitamins (Split)</label>
+            </div>
+
+            <div class="section-title">Unit Expression</div>
+            <div class="radio-group">
+                <label class="checkbox-label"><input type="radio" name="unitSystem" value="molar"> Molar Basis (mM / µM)</label>
+                <label class="checkbox-label"><input type="radio" name="unitSystem" value="mass" checked> Mass Basis (mg / L)</label>
+            </div>
+
+            <div class="toggle-container">
+                <label class="checkbox-label" style="font-weight: 600; margin-bottom: 4px;">
+                    <input type="checkbox" id="colorblindToggle"> Colorblind Safe Palette
+                </label>
+                <label class="checkbox-label" style="font-weight: 600;">
+                    <input type="checkbox" id="darkModeToggle" checked> Dark Mode
+                </label>
+            </div>
+        </div>
+
+        <div>
+            <div class="charts-container" id="chartsContainer">
+                <div class="chart-box" id="boxChart1">
+                    <canvas id="chartCanvas1"></canvas>
+                </div>
+                <div class="chart-box" id="boxChart2" style="display: none;">
+                    <canvas id="chartCanvas2"></canvas>
+                </div>
+            </div>
+
+            <div class="lab-panel" id="labPanel" style="display: none;">
+                <div class="lab-panel-header">
+                    <div class="lab-panel-title" id="labPanelTitle">Recipe Lab – Lab: My Custom Prototype</div>
+                    <div class="lab-tabs">
+                        <button class="lab-tab-btn active" onclick="switchLabTab('macro')">Macro</button>
+                        <button class="lab-tab-btn" onclick="switchLabTab('micro')">Micro</button>
+                        <button class="lab-tab-btn" onclick="switchLabTab('organic')">Organic</button>
+                    </div>
+                    <div style="font-size: 0.75rem; opacity: 0.9;">Adjust sliders to modify salt concentrations</div>
+                </div>
+                <div class="lab-sliders-grid" id="labSlidersGrid">
+                </div>
+                <div class="lab-panel-footer">
+                    <div>Changes update the ion chart instantly</div>
+                    <div class="lab-footer-btns">
+                        <button class="lab-save-btn" id="labSaveBtn">Save Custom</button>
+                        <button class="lab-exit-btn" id="labExitBtn">Exit Lab</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sources-panel" id="sourcesPanel">
+        <h3>All Formulation Sources</h3>
+        <ul id="sourcesList"></ul>
+        <div class="method-note">
+            <strong>Calculation method:</strong> only salt masses (mg/L) are stored per formulation. Ion concentrations (both molar and mass) and salt molarities are all derived at load time from those masses using fixed molecular weights and reaction stoichiometry &mdash; they are never entered twice. This removes the class of bug where an "ion view" and a "salt view" of the same medium quietly disagree with each other. Formulations flagged
+            <span class="unverified-tag">⚠ unverified</span> have salt masses that are internally self-consistent (the math checks out) but have not been confirmed against a primary published source &mdash; verify before using in production.
+        </div>
+    </div>
+</div>
+
+<script>
+    const defaultPalette = ['#ff6b6b', '#4dadf7', '#33d9b2', '#ffb142', '#a55eea', '#20bf6b', '#eb3b5a', '#fa8231', '#00d2d3', '#10b981', '#f59e0b', '#6366f1'];
+    const cbPalette = ['#0072B2', '#E69F00', '#56B4E9', '#009E73', '#CC79A7', '#D55E00', '#F0E442', '#999999', '#3b82f6'];
+
+    const formatDisplayLabel = (label) => {
+        const dictionary = {
+            'NO3': 'NO₃', 'NH4': 'NH₄', 'PO4': 'PO₄', 'SO4': 'SO₄',
+            'NH4NO3': 'NH₄NO₃', '(NH4)2SO4': '(NH₄)₂SO₄', 'KNO3': 'KNO₃',
+            'K2SO4': 'K₂SO₄', 'KH2PO4': 'KH₂PO₄', 'Ca(NO3)2·4H2O': 'Ca(NO₃)₂·4H₂O',
+            'CaCl2·2H2O': 'CaCl₂·2H₂O', 'MgSO4·7H2O': 'MgSO₄·7H₂O', 'NaNO3': 'NaNO₃',
+            'NaH2PO4·H2O': 'NaH₂PO₄·H₂O', 'NH4H2PO4': 'NH₄H₂PO₄', 'KCl': 'KCl',
+            'MnSO4·H2O': 'MnSO₄·H₂O', 'ZnSO4·7H2O': 'ZnSO₄·7H₂O', 'H3BO3': 'H₃BO₃',
+            'CuSO4·5H2O': 'CuSO₄·5H₂O', 'Na2MoO4·2H2O': 'Na₂MoO₄·2H₂O', 'CoCl2·6H2O': 'CoCl₂·6H₂O',
+            'FeCl3·6H2O': 'FeCl₃·6H₂O', 'MnCl2·4H2O': 'MnCl₂·4H₂O', 'NaFeEDTA': 'NaFeEDTA', 'FeEDDHA': 'Fe-EDDHA',
+            'Ca(NO3)2': 'Ca(NO₃)₂', 'Mg(NO3)2·6H2O': 'Mg(NO₃)₂·6H₂O', 'Mg(NO3)2·2H2O': 'Mg(NO₃)₂·2H₂O',
+            'MgSO4': 'MgSO₄', 'Na2SO4': 'Na₂SO₄', 'NiSO4·6H2O': 'NiSO₄·6H₂O', 'KI': 'KI'
+        };
+        return dictionary[label] || label;
+    };
+
+    const macroSaltPriority = [
+        'NH4NO3', '(NH4)2SO4', 'KNO3', 'K2SO4', 'KH2PO4', 'NH4H2PO4', 'NaH2PO4·H2O',
+        'Ca(NO3)2·4H2O', 'Ca(NO3)2', 'CaCl2·2H2O',
+        'MgSO4·7H2O', 'Mg(NO3)2·6H2O', 'Mg(NO3)2·2H2O', 'MgSO4',
+        'NaNO3', 'Na2SO4', 'KCl'
+    ];
+
+    const orderedMacroIons = ['NO3', 'NH4', 'PO4', 'K', 'Ca', 'Mg', 'SO4', 'Na', 'Cl'];
+
+    const microSaltPriority = [
+        'NaFeEDTA', 'FeEDDHA', 'FeCl3·6H2O',
+        'MnSO4·H2O', 'MnCl2·4H2O', 'ZnSO4·7H2O', 'H3BO3', 'KI',
+        'CuSO4·5H2O', 'Na2MoO4·2H2O', 'CoCl2·6H2O', 'NiSO4·6H2O'
+    ];
+
+    const MACRO_SALT_MW = {
+        'NH4NO3': 80.043, '(NH4)2SO4': 132.14, 'KNO3': 101.10, 'K2SO4': 174.25,
+        'KH2PO4': 136.09, 'Ca(NO3)2·4H2O': 236.15, 'Ca(NO3)2': 164.09,
+        'CaCl2·2H2O': 147.01, 'MgSO4·7H2O': 246.47, 'Mg(NO3)2·6H2O': 256.41,
+        'Mg(NO3)2·2H2O': 184.35, 'MgSO4': 120.37, 'NaNO3': 84.99, 
+        'NaH2PO4·H2O': 137.99, 'NH4H2PO4': 115.03, 'KCl': 74.55, 'Na2SO4': 142.04
+    };
+
+    const MACRO_SALT_IONS = {
+        'NH4NO3': { NH4: 1, NO3: 1 },
+        '(NH4)2SO4': { NH4: 2, SO4: 1 },
+        'KNO3': { K: 1, NO3: 1 },
+        'K2SO4': { K: 2, SO4: 1 },
+        'KH2PO4': { K: 1, PO4: 1 },
+        'Ca(NO3)2·4H2O': { Ca: 1, NO3: 2 },
+        'Ca(NO3)2': { Ca: 1, NO3: 2 },
+        'CaCl2·2H2O': { Ca: 1, Cl: 2 },
+        'MgSO4·7H2O': { Mg: 1, SO4: 1 },
+        'Mg(NO3)2·6H2O': { Mg: 1, NO3: 2 },
+        'Mg(NO3)2·2H2O': { Mg: 1, NO3: 2 },
+        'MgSO4': { Mg: 1, SO4: 1 },
+        'NaNO3': { Na: 1, NO3: 1 },
+        'NaH2PO4·H2O': { Na: 1, PO4: 1 },
+        'NH4H2PO4': { NH4: 1, PO4: 1 },
+        'KCl': { K: 1, Cl: 1 },
+        'Na2SO4': { Na: 2, SO4: 1 }
+    };
+
+    const ION_MW = { NO3: 62.00, NH4: 18.04, PO4: 94.97, SO4: 96.06, K: 39.10, Ca: 40.08, Mg: 24.31, Na: 22.99, Cl: 35.45 };
+
+    const MICRO_SALT_MW = {
+        'NaFeEDTA': 367.05, 'FeEDDHA': 435.15, 'FeCl3·6H2O': 270.30,
+        'MnSO4·H2O': 169.02, 'MnCl2·4H2O': 197.91, 'ZnSO4·7H2O': 287.56,
+        'H3BO3': 61.83, 'KI': 166.00, 'CuSO4·5H2O': 249.68, 'Na2MoO4·2H2O': 241.95, 'CoCl2·6H2O': 237.93,
+        'NiSO4·6H2O': 262.85
+    };
+    const MICRO_SALT_ELEMENT = {
+        'NaFeEDTA': 'Fe', 'FeEDDHA': 'Fe', 'FeCl3·6H2O': 'Fe',
+        'MnSO4·H2O': 'Mn', 'MnCl2·4H2O': 'Mn', 'ZnSO4·7H2O': 'Zn',
+        'H3BO3': 'B', 'KI': 'I', 'CuSO4·5H2O': 'Cu', 'Na2MoO4·2H2O': 'Mo', 'CoCl2·6H2O': 'Co',
+        'NiSO4·6H2O': 'Ni'
+    };
+    const ELEMENT_MW = { Fe: 55.845, Mn: 54.938, Zn: 65.38, B: 10.811, I: 126.90, Cu: 63.546, Mo: 95.95, Co: 58.933, Ni: 58.69 };
+
+    const VIT_MW = { 
+        'Myo-Inositol': 180.16, 
+        'Adenine Sulfate': 404.36, 
+        'Casein Hydrolysate': 1.0, 
+        'Peptone': 1.0,
+        'Yeast Extract': 1.0,
+        'Thiamine HCl': 337.27, 
+        'Nicotinic Acid': 123.11, 
+        'Pyridoxine HCl': 205.64, 
+        'Glycine': 75.07, 
+        'Folic Acid': 441.4, 
+        'Biotin': 244.3, 
+        'Riboflavin': 376.36,
+        'Ascorbic Acid': 176.12,
+        'L-Glutamine': 146.14,
+        'L-Asparagine': 132.12
+    };
+
+    const ALL_MACRO_SALTS = Object.keys(MACRO_SALT_MW);
+    const ALL_MICRO_SALTS = Object.keys(MICRO_SALT_MW);
+    const ALL_VITAMINS = Object.keys(VIT_MW);
+
+    const RAW_FORMULATIONS = {
+        ms: {
+            name: 'MS Medium',
+            source: { citation: 'Murashige & Skoog (1962), Physiol. Plant. 15:473–497', verified: true },
+            macroSaltsMass: { 'NH4NO3': 1650.0, 'KNO3': 1900.0, 'KH2PO4': 170.0, 'CaCl2·2H2O': 440.0, 'MgSO4·7H2O': 370.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 36.7, 'MnSO4·H2O': 16.9 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 8.6, 'H3BO3': 6.2, 'KI': 0.83, 'CuSO4·5H2O': 0.25, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.025 },
+            vitAbundantMass: { 'Myo-Inositol': 100 },
+            vitTraceMass: { 'Thiamine HCl': 0.1, 'Nicotinic Acid': 0.5, 'Pyridoxine HCl': 0.5, 'Glycine': 2.0 }
+        },
+        dkw: {
+            name: 'DKW Basal',
+            source: { citation: 'Driver & Kuniyaki (1984), HortScience 19:507–509', verified: true },
+            macroSaltsMass: { 'NH4NO3': 893.0, 'KNO3': 1420.0, 'K2SO4': 1054.0, 'KH2PO4': 360.0, 'Ca(NO3)2·4H2O': 2124.0, 'MgSO4·7H2O': 1503.0 },
+            microSaltsAbundantMass: { 'FeEDDHA': 44.6, 'MnSO4·H2O': 16.9 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 14.4, 'H3BO3': 12.4, 'CuSO4·5H2O': 0.25, 'Na2MoO4·2H2O': 0.39 },
+            vitAbundantMass: { 'Myo-Inositol': 100 },
+            vitTraceMass: { 'Thiamine HCl': 1.0, 'Nicotinic Acid': 1.0, 'Pyridoxine HCl': 1.0, 'Glycine': 2.0 }
+        },
+        wpm: {
+            name: 'WPM Medium',
+            source: { citation: 'Lloyd & McCown (1980), Comb. Proc. Int. Plant Prop. Soc. 30:421–427', verified: true },
+            macroSaltsMass: { 'NH4NO3': 400.0, 'K2SO4': 990.0, 'KH2PO4': 170.0, 'Ca(NO3)2·4H2O': 556.0, 'CaCl2·2H2O': 96.0, 'MgSO4·7H2O': 370.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 36.7, 'MnSO4·H2O': 22.3 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 8.6, 'H3BO3': 6.2, 'CuSO4·5H2O': 0.25, 'Na2MoO4·2H2O': 0.25 },
+            vitAbundantMass: { 'Myo-Inositol': 100 },
+            vitTraceMass: { 'Thiamine HCl': 1.0, 'Nicotinic Acid': 0.5, 'Pyridoxine HCl': 0.5, 'Glycine': 2.0 }
+        },
+        b5: {
+            name: 'Gamborg B-5',
+            source: { citation: 'Gamborg, Miller & Ojima (1968), Exp. Cell Res. 50:151–158', verified: true },
+            macroSaltsMass: { '(NH4)2SO4': 134.0, 'KNO3': 2500.0, 'NaH2PO4·H2O': 150.0, 'CaCl2·2H2O': 150.0, 'MgSO4·7H2O': 250.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 37.0, 'MnSO4·H2O': 10.0 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 2.0, 'H3BO3': 3.0, 'KI': 0.75, 'CuSO4·5H2O': 0.025, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.025 },
+            vitAbundantMass: { 'Myo-Inositol': 100 },
+            vitTraceMass: { 'Thiamine HCl': 10.0, 'Nicotinic Acid': 1.0, 'Pyridoxine HCl': 1.0 }
+        },
+        ql: {
+            name: 'Quoirin & Lepoivre (QL)',
+            source: { citation: 'Quoirin & Lepoivre (1977), Acta Hortic. 78:437–442', verified: false },
+            macroSaltsMass: { 'NH4NO3': 400.0, 'KNO3': 1212.0, 'KH2PO4': 270.0, 'Ca(NO3)2·4H2O': 1014.5, 'MgSO4·7H2O': 370.0, 'KCl': 45.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 36.7, 'MnSO4·H2O': 22.0 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 10.0, 'H3BO3': 6.2, 'CuSO4·5H2O': 0.1, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.025 },
+            vitAbundantMass: { 'Myo-Inositol': 100 },
+            vitTraceMass: { 'Thiamine HCl': 0.4, 'Nicotinic Acid': 0.5, 'Pyridoxine HCl': 0.5 }
+        },
+        rugini: {
+            name: 'Rugini Olive (OL)',
+            source: { citation: 'Rugini (1984), Sci. Hortic. 24:123–134', verified: false },
+            macroSaltsMass: { 'NH4NO3': 840.0, 'KNO3': 1243.0, 'KH2PO4': 3.0, 'Ca(NO3)2·4H2O': 1416.0, 'MgSO4·7H2O': 740.0, 'KCl': 15.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 55.1, 'MnSO4·H2O': 25.4 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 12.9, 'H3BO3': 12.4, 'CuSO4·5H2O': 0.5, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.05 },
+            vitAbundantMass: { 'Myo-Inositol': 100 },
+            vitTraceMass: { 'Thiamine HCl': 0.5, 'Nicotinic Acid': 2.0, 'Pyridoxine HCl': 0.5, 'Glycine': 2.0 }
+        },
+        knudson: {
+            name: 'Knudson C (Fern)',
+            source: { citation: 'Knudson (1946), Am. Orchid Soc. Bull. 15:214–217', verified: true },
+            macroSaltsMass: { 'Ca(NO3)2·4H2O': 1000.0, '(NH4)2SO4': 500.0, 'KH2PO4': 250.0, 'MgSO4·7H2O': 250.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 16.5, 'MnSO4·H2O': 5.6 },
+            microSaltsTraceMass: {},
+            vitAbundantMass: {}, vitTraceMass: {}
+        },
+        anderson: {
+            name: 'Anderson Salts',
+            source: { citation: 'Anderson (1980), Acta Hortic. 112:13–20', verified: true },
+            macroSaltsMass: { 'NH4NO3': 400.0, 'KNO3': 480.0, 'NaH2PO4·H2O': 330.6, 'CaCl2·2H2O': 332.0, 'MgSO4·7H2O': 180.5 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 36.7, 'MnSO4·H2O': 16.9 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 8.6, 'H3BO3': 6.2, 'CuSO4·5H2O': 0.025, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.025 },
+            vitAbundantMass: { 'Myo-Inositol': 100 },
+            vitTraceMass: { 'Thiamine HCl': 0.4, 'Nicotinic Acid': 0.3, 'Pyridoxine HCl': 0.5, 'Glycine': 0.3 }
+        },
+        blaydes: {
+            name: 'Blaydes Medium',
+            source: { citation: 'Blaydes (1966), Physiol. Plant. 19:748–753', verified: false },
+            macroSaltsMass: { 'NH4NO3': 1000.0, 'KNO3': 1000.0, 'KH2PO4': 300.0, 'CaCl2·2H2O': 220.0, 'MgSO4·7H2O': 34.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 73.5, 'MnSO4·H2O': 4.4 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 1.5, 'H3BO3': 1.6 },
+            vitAbundantMass: {},
+            vitTraceMass: { 'Thiamine HCl': 0.1, 'Glycine': 2.0 }
+        },
+        chee: {
+            name: 'Chee C2d Vitis',
+            source: { citation: 'Chee & Pool (1987), HortScience 22:1155–1157', verified: false },
+            macroSaltsMass: { 'NH4NO3': 412.0, 'KNO3': 1455.0, 'KH2PO4': 170.0, 'CaCl2·2H2O': 440.0, 'MgSO4·7H2O': 370.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 36.7, 'MnSO4·H2O': 16.9 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 8.6, 'H3BO3': 6.2, 'CuSO4·5H2O': 0.25, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.02 },
+            vitAbundantMass: { 'Myo-Inositol': 100 },
+            vitTraceMass: { 'Thiamine HCl': 1.0, 'Nicotinic Acid': 1.0, 'Pyridoxine HCl': 1.0, 'Glycine': 2.0 }
+        },
+        chu: {
+            name: 'Chu N6 Basal',
+            source: { citation: 'Chu et al. (1975), Sci. Sin. 18:659–668', verified: true },
+            macroSaltsMass: { '(NH4)2SO4': 463.0, 'KNO3': 2830.0, 'KH2PO4': 400.0, 'CaCl2·2H2O': 166.0, 'MgSO4·7H2O': 185.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 36.7, 'MnSO4·H2O': 11.2 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 1.5, 'H3BO3': 1.6 },
+            vitAbundantMass: {},
+            vitTraceMass: { 'Thiamine HCl': 1.0, 'Nicotinic Acid': 0.5, 'Pyridoxine HCl': 0.5, 'Glycine': 2.0 }
+        },
+        heller: {
+            name: 'Heller Basal',
+            source: { citation: 'Heller (1953), Ann. Sci. Nat. Bot. Biol. Veg. 14:1–223', verified: false },
+            macroSaltsMass: { 'NaNO3': 630.0, 'KCl': 750.0, 'KH2PO4': 750.0, 'CaCl2·2H2O': 68.0, 'MgSO4·7H2O': 517.0 },
+            microSaltsAbundantMass: { 'FeCl3·6H2O': 10.0, 'MnSO4·H2O': 0.1 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 10.0, 'H3BO3': 1.0, 'CuSO4·5H2O': 0.03, 'Na2MoO4·2H2O': 0.03 },
+            vitAbundantMass: {}, vitTraceMass: {}
+        },
+        hoagland: {
+            name: 'Hoagland Modified',
+            source: { citation: 'Hoagland & Arnon (1950), Calif. Agric. Exp. Stn. Circ. 347', verified: true },
+            macroSaltsMass: { 'NH4H2PO4': 115.0, 'KNO3': 505.0, 'Ca(NO3)2·4H2O': 944.0, 'MgSO4·7H2O': 493.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 33.0, 'MnCl2·4H2O': 1.81 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 0.22, 'H3BO3': 2.86, 'CuSO4·5H2O': 0.08, 'Na2MoO4·2H2O': 0.12 },
+            vitAbundantMass: {}, vitTraceMass: {}
+        },
+        nn: {
+            name: 'Nitsch & Nitsch (NN)',
+            source: { citation: 'Nitsch & Nitsch (1969) Science 163:85–87', verified: true },
+            macroSaltsMass: { 'NH4NO3': 720.0, 'KNO3': 950.0, 'CaCl2·2H2O': 166.0, 'MgSO4·7H2O': 185.0, 'KH2PO4': 68.0, 'Na2SO4': 74.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 49.2, 'MnSO4·H2O': 25.0 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 10.0, 'H3BO3': 10.0, 'CuSO4·5H2O': 0.025, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.025 },
+            vitAbundantMass: { 'Myo-Inositol': 100, 'Biotin': 0.05 },
+            vitTraceMass: { 'Thiamine HCl': 0.5, 'Nicotinic Acid': 5.0, 'Pyridoxine HCl': 0.5, 'Glycine': 2.0, 'Folic Acid': 0.5 }
+        },
+        pct_houseplant: {
+            name: 'PCT Houseplant Mix',
+            source: { citation: 'Commercial blend; primary reference not published', verified: false },
+            macroSaltsMass: { 'NH4NO3': 880.0, 'KNO3': 1112.0, 'KH2PO4': 340.0, 'CaCl2·2H2O': 147.0, 'Ca(NO3)2·4H2O': 708.0, 'MgSO4·7H2O': 493.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 44.1, 'MnSO4·H2O': 13.5 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 7.2, 'H3BO3': 6.2, 'CuSO4·5H2O': 0.20, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.024 },
+            vitAbundantMass: { 'Myo-Inositol': 100.0 },
+            vitTraceMass: { 'Thiamine HCl': 1.0, 'Nicotinic Acid': 0.5, 'Pyridoxine HCl': 0.5, 'Glycine': 2.0 }
+        },
+        ree: {
+            name: 'Ree QD 1 Medium',
+            source: { citation: 'Unverified — could not confirm a primary source', verified: false },
+            macroSaltsMass: { 'NH4NO3': 1200.0, 'KNO3': 1515.0, 'KH2PO4': 204.0, 'CaCl2·2H2O': 588.0, 'MgSO4·7H2O': 493.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 44.1, 'MnSO4·H2O': 20.3 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 11.5, 'H3BO3': 7.4, 'CuSO4·5H2O': 0.37, 'Na2MoO4·2H2O': 0.37, 'CoCl2·6H2O': 0.035 },
+            vitAbundantMass: { 'Myo-Inositol': 100 },
+            vitTraceMass: { 'Thiamine HCl': 1.0, 'Nicotinic Acid': 0.5, 'Pyridoxine HCl': 0.5, 'Glycine': 2.0 }
+        },
+        sh: {
+            name: 'Schenk & Hildebrandt (SH)',
+            source: { citation: 'Schenk & Hildebrandt (1972) Can. J. Bot. 50:199-204', verified: true },
+            macroSaltsMass: { 'NH4NO3': 600.0, 'KNO3': 2500.0, 'CaCl2·2H2O': 166.0, 'MgSO4·7H2O': 400.0, 'KH2PO4': 300.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 33.0, 'MnSO4·H2O': 10.0 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 1.0, 'H3BO3': 5.0, 'CuSO4·5H2O': 0.2, 'Na2MoO4·2H2O': 0.1, 'CoCl2·6H2O': 0.1 },
+            vitAbundantMass: { 'Myo-Inositol': 1000 },
+            vitTraceMass: { 'Thiamine HCl': 5.0, 'Nicotinic Acid': 5.0, 'Pyridoxine HCl': 0.5 }
+        },
+        sfn: {
+            name: 'SFN (Sierra Gold Nurseries)',
+            source: { citation: 'SFN Reference Paper', verified: true },
+            macroSaltsMass: { 'NH4NO3': 2100.0, 'KNO3': 1000.0, 'Ca(NO3)2·4H2O': 1200.0, 'Mg(NO3)2·2H2O': 862.7, 'MgSO4·7H2O': 1000.0, 'KH2PO4': 1400.0 },
+            microSaltsAbundantMass: { 'FeEDDHA': 100.0, 'MnSO4·H2O': 200.0 },
+            microSaltsTraceMass: { 'H3BO3': 14.4, 'ZnSO4·7H2O': 60.0, 'CuSO4·5H2O': 0.25, 'Na2MoO4·2H2O': 3.9, 'CoCl2·6H2O': 0.06, 'NiSO4·6H2O': 0.005 },
+            vitAbundantMass: {}, vitTraceMass: {}
+        },
+        tm4g: {
+            name: 'TM4G Basal Salts',
+            source: { citation: 'Unverified — could not confirm a primary source', verified: false },
+            macroSaltsMass: { 'NH4NO3': 1600.0, 'KNO3': 1515.0, 'KH2PO4': 170.0, 'CaCl2·2H2O': 440.0, 'MgSO4·7H2O': 370.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 36.7, 'MnSO4·H2O': 16.9 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 8.6, 'H3BO3': 6.2, 'CuSO4·5H2O': 0.25, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.02 },
+            vitAbundantMass: { 'Myo-Inositol': 100 },
+            vitTraceMass: { 'Thiamine HCl': 1.0, 'Nicotinic Acid': 0.5, 'Pyridoxine HCl': 0.5, 'Glycine': 2.0 }
+        },
+        white: {
+            name: "White's Basal Medium",
+            source: { citation: 'White (1963) "The Cultivation of Animal and Plant Cells"', verified: true },
+            macroSaltsMass: { 'KNO3': 80.0, 'Na2SO4': 200.0, 'KCl': 65.0, 'Ca(NO3)2·4H2O': 288.0, 'MgSO4·7H2O': 738.0, 'NaH2PO4·H2O': 16.5 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 3.3, 'MnSO4·H2O': 6.6 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 2.6, 'H3BO3': 1.5, 'CuSO4·5H2O': 0.01, 'Na2MoO4·2H2O': 0.01 },
+            vitAbundantMass: { 'Myo-Inositol': 100 },
+            vitTraceMass: { 'Thiamine HCl': 0.1, 'Nicotinic Acid': 0.5, 'Pyridoxine HCl': 0.1, 'Glycine': 3.0 }
+        }
+    };
+
+    let formulations = {};
+    function buildFormulation(raw) {
+        const out = { name: raw.name, source: raw.source };
+
+        const macroSalts = {};
+        Object.entries(raw.macroSaltsMass || {}).forEach(([salt, mass]) => {
+            macroSalts[salt] = mass / (MACRO_SALT_MW[salt] || 1);
+        });
+        out.macroSaltsMass = { ...raw.macroSaltsMass };
+        out.macroSalts = macroSalts;
+
+        const macro = { NO3: 0, NH4: 0, PO4: 0, K: 0, Ca: 0, Mg: 0, SO4: 0, Na: 0, Cl: 0 };
+        Object.entries(macroSalts).forEach(([salt, molar]) => {
+            const yields = MACRO_SALT_IONS[salt];
+            if (yields) {
+                Object.entries(yields).forEach(([ion, stoich]) => {
+                    macro[ion] = (macro[ion] || 0) + molar * stoich;
+                });
+            }
+        });
+        out.macro = macro;
+        out.macroMass = {};
+        Object.entries(macro).forEach(([ion, molar]) => {
+            out.macroMass[ion] = molar * ION_MW[ion];
+        });
+
+        const buildMicroTier = (massObj) => {
+            const saltsMolar = {}, saltsMass = { ...massObj };
+            const ionsMolar = {}, ionsMass = {};
+            Object.entries(massObj || {}).forEach(([salt, mass]) => {
+                const molarUM = (mass / (MICRO_SALT_MW[salt] || 1)) * 1000;
+                saltsMolar[salt] = molarUM;
+                const element = MICRO_SALT_ELEMENT[salt];
+                if (element) {
+                    ionsMolar[element] = (ionsMolar[element] || 0) + molarUM;
+                }
+            });
+            Object.entries(ionsMolar).forEach(([el, molarUM]) => {
+                ionsMass[el] = (molarUM / 1000) * ELEMENT_MW[el];
+            });
+            return { saltsMolar, saltsMass, ionsMolar, ionsMass };
+        };
+
+        const abundantTier = buildMicroTier(raw.microSaltsAbundantMass);
+        const traceTier = buildMicroTier(raw.microSaltsTraceMass);
+
+        out.microSaltsAbundant = abundantTier.saltsMolar;
+        out.microSaltsAbundantMass = abundantTier.saltsMass;
+        out.microAbundant = abundantTier.ionsMolar;
+        out.microAbundantMass = abundantTier.ionsMass;
+
+        out.microSaltsTrace = traceTier.saltsMolar;
+        out.microSaltsTraceMass = traceTier.saltsMass;
+        out.microTrace = traceTier.ionsMolar;
+        out.microTraceMass = traceTier.ionsMass;
+
+        const buildVitTier = (massObj) => {
+            const molar = {}, mass = { ...massObj };
+            Object.entries(massObj || {}).forEach(([compound, mg]) => {
+                molar[compound] = mg ? (mg / (VIT_MW[compound] || 1)) * 1000 : 0;
+            });
+            return { molar, mass };
+        };
+        const vitAbundant = buildVitTier(raw.vitAbundantMass);
+        const vitTrace = buildVitTier(raw.vitTraceMass);
+        out.vitAbundant = vitAbundant.molar;
+        out.vitAbundantMass = vitAbundant.mass;
+        out.vitTrace = vitTrace.molar;
+        out.vitTraceMass = vitTrace.mass;
+
+        return out;
+    }
+
+    Object.entries(RAW_FORMULATIONS).forEach(([key, raw]) => {
+        formulations[key] = buildFormulation(raw);
+    });
+
+    let labActive = false;
+    let labCurrentTab = 'macro';
+    let customLabRecipe = {
+        name: "Lab: My Custom Prototype",
+        macroSaltsMass: {},
+        microSaltsAbundantMass: {},
+        microSaltsTraceMass: {},
+        vitAbundantMass: {},
+        vitTraceMass: {}
+    };
+
+    const chartMeta = {
+        macro: { isSplit: false, chart1: { title: 'Macronutrient Ions', keyMolar: 'macro', keyMass: 'macroMass', unitMolar: 'mmoles / L', unitMass: 'mg / L', predefinedLabels: orderedMacroIons } },
+        macroSalts: { isSplit: false, chart1: { title: 'Macronutrient Compounding Salts', keyMolar: 'macroSalts', keyMass: 'macroSaltsMass', unitMolar: 'mmoles / L', unitMass: 'mg / L', sortOrder: macroSaltPriority } },
+        micro: { isSplit: true, chart1: { title: 'Major Micronutrient Ions', keyMolar: 'microAbundant', keyMass: 'microAbundantMass', unitMolar: 'µmoles / L', unitMass: 'mg / L' }, chart2: { title: 'Trace Micronutrient Ions', keyMolar: 'microTrace', keyMass: 'microTraceMass', unitMolar: 'µmoles / L', unitMass: 'mg / L' } },
+        microSalts: { isSplit: true, chart1: { title: 'Major Micronutrient Salts', keyMolar: 'microSaltsAbundant', keyMass: 'microSaltsAbundantMass', unitMolar: 'µmoles / L', unitMass: 'mg / L' }, chart2: { title: 'Trace Micronutrient Salts', keyMolar: 'microSaltsTrace', keyMass: 'microSaltsTraceMass', unitMolar: 'µmoles / L', unitMass: 'mg / L' } },
+        organic: { isSplit: true, chart1: { title: 'Organics & Non-Vitamin Complex Buffers (High Range)', keyMolar: 'vitAbundant', keyMass: 'vitAbundantMass', unitMolar: 'µmoles / L', unitMass: 'mg / L' }, chart2: { title: 'Vitamins & Micronized Complexes (Trace Range)', keyMolar: 'vitTrace', keyMass: 'vitTraceMass', unitMolar: 'µmoles / L', unitMass: 'mg / L' } }
+    };
+
+    let chart1Instance = null;
+    let chart2Instance = null;
+
+    function renderSourcesPanel() {
+        const list = document.getElementById('sourcesList');
+        list.innerHTML = '';
+        Object.keys(formulations).sort().forEach(key => {
+            const f = formulations[key];
+            if (!f) return;
+            const li = document.createElement('li');
+            const verified = f.source && f.source.verified;
+            li.innerHTML = `<strong>${f.name}:</strong> ${f.source ? f.source.citation : 'No source recorded'}` +
+                (verified === false ? ' <span class="unverified-tag">⚠ unverified</span>' : '');
+            list.appendChild(li);
+        });
+    }
+
+    function sortLabelsByPriority(labels, priority) {
+        const priorityMap = {};
+        priority.forEach((item, idx) => { priorityMap[item] = idx; });
+        return labels.slice().sort((a, b) => {
+            const aIdx = priorityMap[a] !== undefined ? priorityMap[a] : Infinity;
+            const bIdx = priorityMap[b] !== undefined ? priorityMap[b] : Infinity;
+            return aIdx - bIdx;
+        });
+    }
+
+    function renderEngine() {
+        const container = document.getElementById('chartsContainer');
+        const box2 = document.getElementById('boxChart2');
+        
+        let checkedMedia = Array.from(document.querySelectorAll('#mediaCheckboxes input:checked')).map(el => el.value);
+        
+        if (labActive) {
+            formulations['lab_custom'] = buildFormulation(customLabRecipe);
+            if (!checkedMedia.includes('lab_custom')) {
+                checkedMedia.unshift('lab_custom');
+            }
+        } else {
+            delete formulations['lab_custom'];
+        }
+
+        const viewType = document.querySelector('input[name="component"]:checked').value;
+        const unitSystem = document.querySelector('input[name="unitSystem"]:checked').value;
+        const colorblind = document.getElementById('colorblindToggle').checked;
+        const isDarkMode = document.getElementById('darkModeToggle').checked;
+        const activeColors = colorblind ? cbPalette : defaultPalette;
+
+        const meta = chartMeta[viewType];
+        const useMass = unitSystem === 'mass';
+
+        document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+
+        const currentTextColor = isDarkMode ? '#cbd5e1' : '#1e293b';
+        const currentGridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
+
+        // Dynamically update UI button text depending on selected expression system
+        const printRecipeBtnLabel = document.getElementById('printRawMgBtn');
+        if (useMass) {
+            printRecipeBtnLabel.innerText = "⚖️ Print Recipes (mg/L)";
+        } else {
+            printRecipeBtnLabel.innerText = "⚖️ Print Recipes (mM / µM)";
+        }
+
+        if (meta.isSplit) {
+            container.classList.add('split-view');
+            box2.style.display = 'block';
+        } else {
+            container.classList.remove('split-view');
+            box2.style.display = 'none';
+        }
+
+        const generateLabels = (subKey, predefined, sortOrder) => {
+            if (predefined) return predefined;
+            const labelSet = new Set();
+            checkedMedia.forEach(mKey => {
+                if (!formulations[mKey]) return;
+                const targetObj = formulations[mKey][subKey];
+                if (targetObj) {
+                    Object.keys(targetObj).forEach(k => {
+                        if (targetObj[k] !== 0) labelSet.add(k);
+                    });
+                }
+            });
+            let labels = Array.from(labelSet);
+            if (sortOrder) {
+                labels = sortLabelsByPriority(labels, sortOrder);
+            }
+            return labels;
+        };
+
+        const chart1Labels = generateLabels(
+            useMass ? meta.chart1.keyMass : meta.chart1.keyMolar,
+            meta.chart1.predefinedLabels,
+            meta.chart1.sortOrder
+        );
+        const chart2Labels = meta.isSplit ? generateLabels(
+            useMass ? meta.chart2.keyMass : meta.chart2.keyMolar,
+            meta.chart2.predefinedLabels,
+            meta.chart2.sortOrder
+        ) : [];
+
+        const displayLabels1 = chart1Labels.map(formatDisplayLabel);
+        const displayLabels2 = chart2Labels.map(formatDisplayLabel);
+
+        const buildDatasets = (targetConfig, alignedLabels) => {
+            const dataKey = useMass ? targetConfig.keyMass : targetConfig.keyMolar;
+            return checkedMedia.map((mKey, i) => {
+                const formulationData = formulations[mKey] ? formulations[mKey][dataKey] : {};
+                const dynamicVector = alignedLabels.map(label => formulationData[label] || 0);
+                
+                const isLab = (mKey === 'lab_custom');
+                return {
+                    label: isLab ? `★ Lab: ${customLabRecipe.name}` : (formulations[mKey] ? formulations[mKey].name : mKey),
+                    data: dynamicVector,
+                    backgroundColor: isLab ? '#00e1ff' : activeColors[i % activeColors.length],
+                    borderColor: isLab ? '#ffffff' : 'transparent',
+                    borderWidth: isLab ? 2 : 0,
+                    barPercentage: 1.0,
+                    categoryPercentage: 0.85
+                };
+            });
+        };
+
+        const getChartOptions = (titleText, yUnit) => ({
+            responsive: true, 
+            maintainAspectRatio: false,
+            animation: false, 
+            plugins: { 
+                legend: { 
+                    position: 'top',
+                    labels: { color: currentTextColor }
+                }, 
+                title: { 
+                    display: true, 
+                    text: titleText + (labActive ? " – Lab Comparison" : ""), 
+                    color: currentTextColor,
+                    font: { size: 13, weight: 'bold' } 
+                } 
+            },
+            scales: { 
+                x: {
+                    ticks: { color: currentTextColor },
+                    grid: { color: currentGridColor }
+                },
+                y: { 
+                    beginAtZero: true, 
+                    ticks: { color: currentTextColor },
+                    grid: { color: currentGridColor },
+                    title: { display: true, text: yUnit, color: currentTextColor } 
+                } 
+            }
+        });
+
+        if (chart1Instance) chart1Instance.destroy();
+        chart1Instance = new Chart(document.getElementById('chartCanvas1').getContext('2d'), {
+            type: 'bar',
+            data: { labels: displayLabels1, datasets: buildDatasets(meta.chart1, chart1Labels) },
+            options: getChartOptions(meta.chart1.title, useMass ? meta.chart1.unitMass : meta.chart1.unitMolar)
+        });
+
+        if (meta.isSplit && chart2Labels.length > 0) {
+            if (chart2Instance) chart2Instance.destroy();
+            chart2Instance = new Chart(document.getElementById('chartCanvas2').getContext('2d'), {
+                type: 'bar',
+                data: { labels: displayLabels2, datasets: buildDatasets(meta.chart2, chart2Labels) },
+                options: getChartOptions(meta.chart2.title, useMass ? meta.chart2.unitMass : meta.chart2.unitMolar)
+            });
+        } else if (meta.isSplit) {
+            box2.style.display = 'none';
+        }
+
+        renderSourcesPanel();
+    }
+
+    document.getElementById('enterLabBtn').addEventListener('click', () => {
+        const checkedInput = document.querySelector('#mediaCheckboxes input:checked');
+        const baseKey = checkedInput ? checkedInput.value : 'ms';
+        const baseData = RAW_FORMULATIONS[baseKey] || RAW_FORMULATIONS.ms;
+
+        const userName = prompt("Enter a name for your custom lab recipe:", "My Custom Prototype");
+        if (!userName) return;
+
+        customLabRecipe.name = userName;
+        document.getElementById('labPanelTitle').innerText = `Recipe Lab – Lab: ${userName}`;
+
+        customLabRecipe.macroSaltsMass = {};
+        ALL_MACRO_SALTS.forEach(s => customLabRecipe.macroSaltsMass[s] = baseData.macroSaltsMass[s] || 0);
+
+        customLabRecipe.microSaltsAbundantMass = {};
+        ALL_MICRO_SALTS.forEach(s => {
+            if (baseData.microSaltsAbundantMass && baseData.microSaltsAbundantMass[s] !== undefined) {
+                customLabRecipe.microSaltsAbundantMass[s] = baseData.microSaltsAbundantMass[s];
+            } else {
+                customLabRecipe.microSaltsAbundantMass[s] = 0;
+            }
+        });
+
+        customLabRecipe.microSaltsTraceMass = {};
+        ALL_MICRO_SALTS.forEach(s => {
+            if (baseData.microSaltsTraceMass && baseData.microSaltsTraceMass[s] !== undefined) {
+                customLabRecipe.microSaltsTraceMass[s] = baseData.microSaltsTraceMass[s];
+            } else {
+                customLabRecipe.microSaltsTraceMass[s] = 0;
+            }
+        });
+
+        customLabRecipe.vitAbundantMass = {};
+        customLabRecipe.vitTraceMass = {};
+        ALL_VITAMINS.forEach(v => {
+            customLabRecipe.vitAbundantMass[v] = (baseData.vitAbundantMass && baseData.vitAbundantMass[v]) ? baseData.vitAbundantMass[v] : 0;
+            customLabRecipe.vitTraceMass[v] = (baseData.vitTraceMass && baseData.vitTraceMass[v]) ? baseData.vitTraceMass[v] : 0;
+        });
+
+        labActive = true;
+        document.getElementById('labPanel').style.display = 'block';
+        switchLabTab('macro');
+        renderEngine();
+    });
+
+    function switchLabTab(tabName) {
+        labCurrentTab = tabName;
+        document.querySelectorAll('.lab-tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.innerText.toLowerCase() === tabName.toLowerCase());
+        });
+
+        const matchingRadio = document.querySelector(`input[name="component"][value="${tabName}"]`);
+        if (matchingRadio) {
+            matchingRadio.checked = true;
+        }
+
+        const grid = document.getElementById('labSlidersGrid');
+        grid.innerHTML = '';
+
+        if (tabName === 'macro') {
+            ALL_MACRO_SALTS.forEach(salt => {
+                const isNpk = ['NH4NO3', 'KNO3', 'KH2PO4', 'NH4H2PO4'].includes(salt);
+                const cap = isNpk ? 5000 : 3000;
+                const val = customLabRecipe.macroSaltsMass[salt] || 0;
+                grid.appendChild(createSliderElement(salt, val, 0, cap, 1, 'macroSaltsMass'));
+            });
+        } else if (tabName === 'micro') {
+            ALL_MICRO_SALTS.forEach(salt => {
+                const isMajor = ['NaFeEDTA', 'FeEDDHA', 'FeCl3·6H2O', 'MnSO4·H2O', 'MnCl2·4H2O'].includes(salt);
+                const cap = isMajor ? 500 : 50;
+                const step = isMajor ? 0.1 : 0.01;
+                
+                const isTrace = ["ZnSO4·7H2O", "H3BO3", "KI", "CuSO4·5H2O", "Na2MoO4·2H2O", "CoCl2·6H2O", "NiSO4·6H2O"].includes(salt);
+                const val = isTrace ? (customLabRecipe.microSaltsTraceMass[salt] || 0) : (customLabRecipe.microSaltsAbundantMass[salt] || 0);
+                const targetKey = isTrace ? 'microSaltsTraceMass' : 'microSaltsAbundantMass';
+                grid.appendChild(createSliderElement(salt, val, 0, cap, step, targetKey));
+            });
+        } else if (tabName === 'organic') {
+            ALL_VITAMINS.forEach(vit => {
+                const isAbundant = ['Myo-Inositol', 'Adenine Sulfate', 'Casein Hydrolysate', 'Peptone', 'Yeast Extract'].includes(vit);
+                const cap = isAbundant ? 1000 : 20;
+                const step = isAbundant ? 1 : 0.1;
+                const val = isAbundant ? (customLabRecipe.vitAbundantMass[vit] || 0) : (customLabRecipe.vitTraceMass[vit] || 0);
+                const targetKey = isAbundant ? 'vitAbundantMass' : 'vitTraceMass';
+                grid.appendChild(createSliderElement(vit, val, 0, cap, step, targetKey));
+            });
+        }
+
+        renderEngine();
+    }
+
+    function createSliderElement(name, value, min, max, step, targetGroupKey) {
+        const item = document.createElement('div');
+        item.className = 'slider-item';
+
+        const meta = document.createElement('div');
+        meta.className = 'slider-meta';
+        meta.innerHTML = `<span>${formatDisplayLabel(name)}</span><span id="val_${name}">${value} mg/L</span>`;
+        
+        const input = document.createElement('input');
+        input.type = 'range';
+        input.min = min;
+        input.max = max;
+        input.step = step;
+        input.value = value;
+
+        input.addEventListener('input', (e) => {
+            const newVal = parseFloat(e.target.value);
+            document.getElementById(`val_${name}`).innerText = `${newVal} mg/L`;
+            customLabRecipe[targetGroupKey][name] = newVal;
+            renderEngine(); 
+        });
+
+        item.appendChild(meta);
+        item.appendChild(input);
+        return item;
+    }
+
+    document.getElementById('labExitBtn').addEventListener('click', () => {
+        labActive = false;
+        document.getElementById('labPanel').style.display = 'none';
+        renderEngine();
+    });
+
+    document.getElementById('labSaveBtn').addEventListener('click', () => {
+        const uniqueId = 'custom_' + Date.now();
+        RAW_FORMULATIONS[uniqueId] = {
+            name: customLabRecipe.name,
+            source: { citation: 'User Custom Recipe Lab Creation', verified: true },
+            macroSaltsMass: { ...customLabRecipe.macroSaltsMass },
+            microSaltsAbundantMass: { ...customLabRecipe.microSaltsAbundantMass },
+            microSaltsTraceMass: { ...customLabRecipe.microSaltsTraceMass },
+            vitAbundantMass: { ...customLabRecipe.vitAbundantMass },
+            vitTraceMass: { ...customLabRecipe.vitTraceMass }
+        };
+        
+        formulations[uniqueId] = buildFormulation(RAW_FORMULATIONS[uniqueId]);
+
+        const group = document.getElementById('mediaCheckboxes');
+        const label = document.createElement('label');
+        label.className = 'checkbox-label';
+        label.innerHTML = `<input type="checkbox" value="${uniqueId}" checked> ${customLabRecipe.name}`;
+        group.appendChild(label);
+
+        label.querySelector('input').addEventListener('change', renderEngine);
+
+        alert(`Successfully saved "${customLabRecipe.name}" as a permanent formulation reference choice!`);
+        labActive = false;
+        document.getElementById('labPanel').style.display = 'none';
+        renderEngine();
+    });
+
+    document.getElementById('toggleAllMedia').addEventListener('click', function(e) {
+        const checkboxes = document.querySelectorAll('#mediaCheckboxes input[type="checkbox"]');
+        const standardState = e.target.innerText === 'Select All';
+        checkboxes.forEach(cb => cb.checked = standardState);
+        e.target.innerText = standardState ? 'Clear All' : 'Select All';
+        renderEngine();
+    });
+	
+    // BUTTON 1: STOCK SOLUTIONS PRINTING
+    document.getElementById('printRecipeBtn').addEventListener('click', () => {
+        let checkedMedia = Array.from(document.querySelectorAll('#mediaCheckboxes input:checked')).map(el => el.value);
+        if (labActive && !checkedMedia.includes('lab_custom')) checkedMedia.unshift('lab_custom');
+        if (checkedMedia.length === 0) { alert("Please select at least one formulation to print."); return; }
+
+        const printWindow = window.open('', '_blank');
+        let htmlContent = `<!DOCTYPE html><html><head><title>PTC Production Stock Sheets</title><style>body { font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif; color: #000; background: #fff; margin: 20px; font-size: 13px; }.sheet { page-break-after: always; border: 1px solid #ccc; padding: 20px; margin-bottom: 20px; border-radius: 6px; }.sheet:last-child { page-break-after: avoid; }h2 { margin-top: 0; font-size: 1.4rem; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 5px; }.subtitle { font-style: italic; color: #555; margin-bottom: 15px; font-size: 0.85rem; }table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }th, td { border: 1px solid #aaa; padding: 6px 10px; text-align: left; }th { background-color: #f2f2f2; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }.section-header { background-color: #e2e8f0; font-weight: bold; font-size: 0.9rem; padding: 6px 10px; }.aliquot-row { font-style: italic; background-color: #f8fafc; font-size: 0.85rem; color: #334155; }@media print { body { margin: 0; } .sheet { border: none; padding: 0; margin-bottom: 0; } }</style></head><body>`;
+
+        checkedMedia.forEach(mKey => {
+            const f = formulations[mKey]; if (!f) return;
+            const displayTitle = (mKey === 'lab_custom') ? `Lab Custom: ${customLabRecipe.name}` : f.name;
+
+            let macroA = [], macroB = [], ironStock = [], microStock = [], vitOrganicsStock = [];
+            macroSaltPriority.forEach(salt => {
+                const mass = f.macroSaltsMass ? f.macroSaltsMass[salt] : 0;
+                if (mass > 0) {
+                    if (salt.toLowerCase().includes('calcium') || salt.toLowerCase().includes('ca(') || salt.toLowerCase().includes('cacl')) macroA.push({ name: formatDisplayLabel(salt), mass1x: mass });
+                    else macroB.push({ name: formatDisplayLabel(salt), mass1x: mass });
+                }
+            });
+            microSaltPriority.forEach(salt => {
+                const combined = (f.microSaltsAbundantMass ? (f.microSaltsAbundantMass[salt] || 0) : 0) + (f.microSaltsTraceMass ? (f.microSaltsTraceMass[salt] || 0) : 0);
+                if (combined > 0) {
+                    const sName = salt.toLowerCase();
+                    if (sName.includes('iron') || sName.includes('fe-') || sName.includes('feso') || sName.includes('edta') || sName.includes('dtpa') || sName.includes('eddha') || sName.includes('ferric')) ironStock.push({ name: formatDisplayLabel(salt), mass1x: combined });
+                    else microStock.push({ name: formatDisplayLabel(salt), mass1x: combined });
+                }
+            });
+            ALL_VITAMINS.forEach(vit => {
+                const combined = (f.vitAbundantMass ? (f.vitAbundantMass[vit] || 0) : 0) + (f.vitTraceMass ? (f.vitTraceMass[vit] || 0) : 0);
+                if (combined > 0) vitOrganicsStock.push({ name: vit, mass1x: combined });
+            });
+
+            htmlContent += `<div class="sheet"><h2>${displayTitle} Stock Solutions</h2><div class="subtitle">Mixed Stock Log Sheet &mdash; Formulated for 1 Liter Concentrated Bottles</div><table><thead><tr><th style="width: 55%;">Component Name</th><th style="width: 25%;">Target Mass (Per 1 L Stock Bottle)</th><th style="width: 20%;">Measured (✓)</th></tr></thead><tbody>`;
+            if (macroA.length > 0) {
+                htmlContent += `<tr class="section-header"><td colspan="3">1. Macro Stock A (Calcium Concentrate &mdash; 10x)</td></tr><tr class="aliquot-row"><td colspan="3">&bull; Medium Pipette Target: Use 100 mL of this stock per final Liter of media.</td></tr>`;
+                macroA.forEach(item => { htmlContent += `<tr><td style="padding-left: 15px;">${item.name}</td><td>${((item.mass1x * 10) / 1000).toFixed(2)} g</td><td></td></tr>`; });
+            }
+            if (macroB.length > 0) {
+                htmlContent += `<tr class="section-header"><td colspan="3">2. Macro Stock B (Sulfates / Phosphates Concentrate &mdash; 10x)</td></tr><tr class="aliquot-row"><td colspan="3">&bull; Medium Pipette Target: Use 100 mL of this stock per final Liter of media.</td></tr>`;
+                macroB.forEach(item => { htmlContent += `<tr><td style="padding-left: 15px;">${item.name}</td><td>${((item.mass1x * 10) / 1000).toFixed(2)} g</td><td></td></tr>`; });
+            }
+            if (ironStock.length > 0) {
+                htmlContent += `<tr class="section-header"><td colspan="3">3. Iron & Chelate Stock (Isolated Concentrate &mdash; 100x)</td></tr><tr class="aliquot-row"><td colspan="3">&bull; Medium Pipette Target: Use 10 mL of this stock per final Liter of media. Store in dark amber bottle.</td></tr>`;
+                ironStock.forEach(item => { htmlContent += `<tr><td style="padding-left: 15px;">${item.name}</td><td>${Math.round(item.mass1x * 100)} mg</td><td></td></tr>`; });
+            }
+            if (microStock.length > 0) {
+                htmlContent += `<tr class="section-header"><td colspan="3">4. Micronutrient Stock Solution (&mdash; 100x)</td></tr><tr class="aliquot-row"><td colspan="3">&bull; Medium Pipette Target: Use 10 mL of this stock per final Liter of media.</td></tr>`;
+                microStock.forEach(item => { htmlContent += `<tr><td style="padding-left: 15px;">${item.name}</td><td>${Math.round(item.mass1x * 100)} mg</td><td></td></tr>`; });
+            }
+            if (vitOrganicsStock.length > 0) {
+                htmlContent += `<tr class="section-header"><td colspan="3">5. Vitamin & Organics Stock Solution (&mdash; 100x)</td></tr><tr class="aliquot-row"><td colspan="3">&bull; Medium Pipette Target: Use 10 mL of this stock per final Liter of media. Store frozen.</td></tr>`;
+                vitOrganicsStock.forEach(item => { htmlContent += `<tr><td style="padding-left: 15px;">${item.name}</td><td>${Math.round(item.mass1x * 100)} mg</td><td></td></tr>`; });
+            }
+            htmlContent += `</tbody></table></div>`;
+        });
+        htmlContent += `<script>window.onload = function() { window.print(); }<\/script></body></html>`;
+        printWindow.document.open(); printWindow.document.write(htmlContent); printWindow.document.close();
+    });
+
+    // BUTTON 2: TARGET INGREDIENT MASS/MOLAR PRINTING
+    document.getElementById('printRawMgBtn').addEventListener('click', () => {
+        let checkedMedia = Array.from(document.querySelectorAll('#mediaCheckboxes input:checked')).map(el => el.value);
+        if (labActive && !checkedMedia.includes('lab_custom')) checkedMedia.unshift('lab_custom');
+        if (checkedMedia.length === 0) { alert("Please select at least one formulation to print."); return; }
+
+        const unitSystem = document.querySelector('input[name="unitSystem"]:checked').value;
+        const useMass = unitSystem === 'mass';
+        
+        const printWindow = window.open('', '_blank');
+        let htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>PTC Formulation Recipe Sheets</title>
+            <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif; color: #000; background: #fff; margin: 20px; font-size: 13px; }
+                .sheet { page-break-after: always; border: 1px solid #ccc; padding: 20px; margin-bottom: 20px; border-radius: 6px; }
+                .sheet:last-child { page-break-after: avoid; }
+                h2 { margin-top: 0; font-size: 1.4rem; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 5px; }
+                .subtitle { font-style: italic; color: #555; margin-bottom: 15px; font-size: 0.85rem; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+                th, td { border: 1px solid #aaa; padding: 6px 10px; text-align: left; }
+                th { background-color: #f2f2f2; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
+                .section-header { background-color: #e2e8f0; font-weight: bold; font-size: 0.9rem; padding: 6px 10px; }
+                @media print { body { margin: 0; } .sheet { border: none; padding: 0; margin-bottom: 0; } }
+            </style>
+        </head>
+        <body>
+        `;
+
+        checkedMedia.forEach(mKey => {
+            const f = formulations[mKey]; if (!f) return;
+            const displayTitle = (mKey === 'lab_custom') ? `Lab Custom: ${customLabRecipe.name}` : f.name;
+            const subtitleText = useMass ? 
+                "Base Reference Recipe Sheet &mdash; Explicit Masses Required Per Single (1) Final Liter of Media" :
+                "Base Reference Recipe Sheet &mdash; Compounding Molar Concentrations Per Single (1) Final Liter of Media";
+
+            htmlContent += `
+            <div class="sheet">
+                <h2>${displayTitle}</h2>
+                <div class="subtitle">${subtitleText}</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 60%;">Ingredient Compound Name</th>
+                            <th style="width: 40%; text-transform: uppercase; font-size: 0.75rem;">Absolute Target Concentration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            let hasMacro = false;
+            macroSaltPriority.forEach(salt => {
+                const mass = f.macroSaltsMass ? f.macroSaltsMass[salt] : 0;
+                if (mass > 0) {
+                    if (!hasMacro) { htmlContent += `<tr class="section-header"><td colspan="2">Macronutrient Compounding Salts</td></tr>`; hasMacro = true; }
+                    
+                    let displayValue = "";
+                    if (useMass) {
+                        displayValue = `${mass.toFixed(1)} mg/L`;
+                    } else {
+                        const molarMM = mass / (MACRO_SALT_MW[salt] || 1);
+                        displayValue = `${molarMM.toFixed(3)} mM`;
+                    }
+                    htmlContent += `<tr><td style="padding-left: 15px;">${formatDisplayLabel(salt)}</td><td>${displayValue}</td></tr>`;
+                }
+            });
+
+            let hasMicro = false;
+            microSaltPriority.forEach(salt => {
+                const abMass = f.microSaltsAbundantMass ? (f.microSaltsAbundantMass[salt] || 0) : 0;
+                const trMass = f.microSaltsTraceMass ? (f.microSaltsTraceMass[salt] || 0) : 0;
+                const combined = abMass + trMass;
+                if (combined > 0) {
+                    if (!hasMicro) { htmlContent += `<tr class="section-header"><td colspan="2">Micronutrient Salts</td></tr>`; hasMicro = true; }
+                    
+                    let displayValue = "";
+                    if (useMass) {
+                        displayValue = `${combined.toFixed(3)} mg/L`;
+                    } else {
+                        const molarUM = (combined / (MICRO_SALT_MW[salt] || 1)) * 1000;
+                        displayValue = `${molarUM.toFixed(3)} µM`;
+                    }
+                    htmlContent += `<tr><td style="padding-left: 15px;">${formatDisplayLabel(salt)}</td><td>${displayValue}</td></tr>`;
+                }
+            });
+
+            let hasVit = false;
+            ALL_VITAMINS.forEach(vit => {
+                const abMass = f.vitAbundantMass ? (f.vitAbundantMass[vit] || 0) : 0;
+                const trMass = f.vitTraceMass ? (f.vitTraceMass[vit] || 0) : 0;
+                const combined = abMass + trMass;
+                if (combined > 0) {
+                    if (!hasVit) { htmlContent += `<tr class="section-header"><td colspan="2">Vitamins & Organic Compounds</td></tr>`; hasVit = true; }
+                    
+                    let displayValue = "";
+                    if (useMass) {
+                        displayValue = `${combined.toFixed(3)} mg/L`;
+                    } else {
+                        // Keep molecular weight evaluation consistent with tool's baseline logic
+                        if (VIT_MW[vit] === 1.0) {
+                            displayValue = `${combined.toFixed(1)} mg/L (Complex Mixture)`;
+                        } else {
+                            const molarUM = (combined / (VIT_MW[vit] || 1)) * 1000;
+                            displayValue = `${molarUM.toFixed(3)} µM`;
+                        }
+                    }
+                    htmlContent += `<tr><td style="padding-left: 15px;">${vit}</td><td>${displayValue}</td></tr>`;
+                }
+            });
+
+            htmlContent += `</tbody></table></div>`;
+        });
+
+        htmlContent += `<script>window.onload = function() { window.print(); }<\/script></body></html>`;
+        printWindow.document.open(); printWindow.document.write(htmlContent); printWindow.document.close();
+    });
+
+    document.getElementById('mediaCheckboxes').addEventListener('change', renderEngine);
+    document.querySelectorAll('input[name="component"]').forEach(el => el.addEventListener('change', renderEngine));
+    document.querySelectorAll('input[name="unitSystem"]').forEach(el => el.addEventListener('change', renderEngine));
+    document.getElementById('colorblindToggle').addEventListener('change', renderEngine);
+    document.getElementById('darkModeToggle').addEventListener('change', renderEngine);
+
+    renderEngine();
+</script>
+</body>
+</html>
