@@ -359,6 +359,16 @@
             color: var(--text-muted);
             margin: -12px 0 18px 0;
         }
+		.slider-meta-input {
+            width: 70px;
+            background: var(--bg-box);
+            color: var(--text-main);
+            border: 1px solid var(--border-input);
+            border-radius: 4px;
+            padding: 2px 4px;
+            font-size: 0.75rem;
+            text-align: right;
+        }
     </style>
 </head>
 <body>
@@ -400,7 +410,6 @@
                 <label class="checkbox-label"><input type="checkbox" value="heller"> Heller Basal Mixture</label>
                 <label class="checkbox-label"><input type="checkbox" value="hoagland"> Hoagland Modified Salts</label>
                 <label class="checkbox-label"><input type="checkbox" value="nn"> Nitsch & Nitsch (NN)</label>
-                <label class="checkbox-label"><input type="checkbox" value="pct_houseplant"> PCT Houseplant Mix</label>
                 <label class="checkbox-label"><input type="checkbox" value="ree"> Ree QD 1 Medium</label>
                 <label class="checkbox-label"><input type="checkbox" value="sh"> Schenk & Hildebrandt (SH)</label>
                 <label class="checkbox-label"><input type="checkbox" value="sfn"> SFN (Sierra Gold Nurseries)</label>
@@ -474,8 +483,8 @@
         <h3>All Formulation Sources</h3>
         <ul id="sourcesList"></ul>
         <div class="method-note">
-            <strong>Calculation method:</strong> only salt masses (mg/L) are stored per formulation. Ion concentrations (both molar and mass) and salt molarities are all derived at load time from those masses using fixed molecular weights and reaction stoichiometry &mdash; they are never entered twice. This removes the class of bug where an "ion view" and a "salt view" of the same medium quietly disagree with each other. Formulations flagged
-            <span class="unverified-tag">⚠ unverified</span> have salt masses that are internally self-consistent (the math checks out) but have not been confirmed against a primary published source &mdash; verify before using in production.
+            <strong>Formulations flagged
+            <span class="unverified-tag">⚠ unverified</span> have salt masses that have not been confirmed against a primary published source &mdash; verify before using in production.
         </div>
     </div>
 </div>
@@ -489,16 +498,18 @@
             'NO3': 'NO₃', 'NH4': 'NH₄', 'PO4': 'PO₄', 'SO4': 'SO₄',
             'NH4NO3': 'NH₄NO₃', '(NH4)2SO4': '(NH₄)₂SO₄', 'KNO3': 'KNO₃',
             'K2SO4': 'K₂SO₄', 'KH2PO4': 'KH₂PO₄', 'Ca(NO3)2·4H2O': 'Ca(NO₃)₂·4H₂O',
-            'CaCl2·2H2O': 'CaCl₂·2H₂O', 'MgSO4·7H2O': 'MgSO₄·7H₂O', 'NaNO3': 'NaNO₃',
-            'NaH2PO4·H2O': 'NaH₂PO₄·H₂O', 'NH4H2PO4': 'NH₄H₂PO₄', 'KCl': 'KCl',
-            'MnSO4·H2O': 'MnSO₄·H₂O', 'ZnSO4·7H2O': 'ZnSO₄·7H₂O', 'H3BO3': 'H₃BO₃',
+            'CaCl2·2H2O': 'CaCl₂·2H₂O', 'CaCl2': 'CaCl₂', 'MgSO4·7H2O': 'MgSO₄·7H₂O', 'NaNO3': 'NaNO₃',
+            'NaH2PO4·H2O': 'NaH₂PO₄·H₂O', 'NH4H2PO4': 'NH₄H₂PO₄', 'KCl': 'KCl', 
+            'MnSO4·H2O': 'MnSO₄·H₂O', 'ZnSO4·7H2O': 'ZnSO₄·7H₂O', 'Zn(NO3)2·6H2O': 'Zn(NO₃)₂·6H₂O', 'H3BO3': 'H₃BO₃',
             'CuSO4·5H2O': 'CuSO₄·5H₂O', 'Na2MoO4·2H2O': 'Na₂MoO₄·2H₂O', 'CoCl2·6H2O': 'CoCl₂·6H₂O',
-            'FeCl3·6H2O': 'FeCl₃·6H₂O', 'MnCl2·4H2O': 'MnCl₂·4H₂O', 'NaFeEDTA': 'NaFeEDTA', 'FeEDDHA': 'Fe-EDDHA',
+            'FeCl3·6H2O': 'FeCl₃·6H₂O', 'MnCl2·4H2O': 'MnCl₂·4H₂O', 'NaFeEDTA': 'NaFeEDTA', 'FeNa-EDDHA': 'FeNa-EDDHA',
             'Ca(NO3)2': 'Ca(NO₃)₂', 'Mg(NO3)2·6H2O': 'Mg(NO₃)₂·6H₂O', 'Mg(NO3)2·2H2O': 'Mg(NO₃)₂·2H₂O',
+			'Mg(NO3)2': 'Mg(NO₃)₂','NaH2PO4': 'NaH₂PO₄',
             'MgSO4': 'MgSO₄', 'Na2SO4': 'Na₂SO₄', 'NiSO4·6H2O': 'NiSO₄·6H₂O', 'KI': 'KI'
         };
         return dictionary[label] || label;
     };
+<!-- Manually added hydrations or anhydrous to library for various 8/1/2026 -->
 
     const macroSaltPriority = [
         'NH4NO3', '(NH4)2SO4', 'KNO3', 'K2SO4', 'KH2PO4', 'NH4H2PO4', 'NaH2PO4·H2O',
@@ -510,19 +521,19 @@
     const orderedMacroIons = ['NO3', 'NH4', 'PO4', 'K', 'Ca', 'Mg', 'SO4', 'Na', 'Cl'];
 
     const microSaltPriority = [
-        'NaFeEDTA', 'FeEDDHA', 'FeCl3·6H2O',
+        'NaFeEDTA', 'FeNa-EDDHA', 'FeCl3·6H2O',
         'MnSO4·H2O', 'MnCl2·4H2O', 'ZnSO4·7H2O', 'H3BO3', 'KI',
         'CuSO4·5H2O', 'Na2MoO4·2H2O', 'CoCl2·6H2O', 'NiSO4·6H2O'
     ];
 
     const MACRO_SALT_MW = {
-        'NH4NO3': 80.043, '(NH4)2SO4': 132.14, 'KNO3': 101.10, 'K2SO4': 174.25,
-        'KH2PO4': 136.09, 'Ca(NO3)2·4H2O': 236.15, 'Ca(NO3)2': 164.09,
+        'NH4NO3': 80.04, '(NH4)2SO4': 132.14, 'KNO3': 101.10, 'K2SO4': 174.26,
+        'KH2PO4': 136.09, 'Ca(NO3)2·4H2O': 236.15, 'Ca(NO3)2': 164.09,'CaCl2': 110.98,
         'CaCl2·2H2O': 147.01, 'MgSO4·7H2O': 246.47, 'Mg(NO3)2·6H2O': 256.41,
-        'Mg(NO3)2·2H2O': 184.35, 'MgSO4': 120.37, 'NaNO3': 84.99, 
-        'NaH2PO4·H2O': 137.99, 'NH4H2PO4': 115.03, 'KCl': 74.55, 'Na2SO4': 142.04
+        'Mg(NO3)2·2H2O': 184.35, 'Mg(NO3)2': 148.32, 'MgSO4': 120.37, 'NaNO3': 84.99, 
+        'NaH2PO4·H2O': 137.99, 'NaH2PO4': 119.98, 'NH4H2PO4': 115.03, 'KCl': 74.56, 'Na2SO4': 142.04
     };
-
+<!-- Manually confirmed MW and added more hydrations or anhydrous for various 8/1/2026 -->
     const MACRO_SALT_IONS = {
         'NH4NO3': { NH4: 1, NO3: 1 },
         '(NH4)2SO4': { NH4: 2, SO4: 1 },
@@ -531,51 +542,60 @@
         'KH2PO4': { K: 1, PO4: 1 },
         'Ca(NO3)2·4H2O': { Ca: 1, NO3: 2 },
         'Ca(NO3)2': { Ca: 1, NO3: 2 },
+        'CaCl2': { Ca: 1, Cl: 2 },
         'CaCl2·2H2O': { Ca: 1, Cl: 2 },
         'MgSO4·7H2O': { Mg: 1, SO4: 1 },
         'Mg(NO3)2·6H2O': { Mg: 1, NO3: 2 },
         'Mg(NO3)2·2H2O': { Mg: 1, NO3: 2 },
+        'Mg(NO3)2': { Mg: 1, NO3: 2 },
         'MgSO4': { Mg: 1, SO4: 1 },
         'NaNO3': { Na: 1, NO3: 1 },
         'NaH2PO4·H2O': { Na: 1, PO4: 1 },
+		'NaH2PO4': { Na: 1, PO4: 1 },
         'NH4H2PO4': { NH4: 1, PO4: 1 },
         'KCl': { K: 1, Cl: 1 },
         'Na2SO4': { Na: 2, SO4: 1 }
     };
 
     const ION_MW = { NO3: 62.00, NH4: 18.04, PO4: 94.97, SO4: 96.06, K: 39.10, Ca: 40.08, Mg: 24.31, Na: 22.99, Cl: 35.45 };
+<!-- Manually confirmed MW of ions 8/1/2026 -->
+<!-- Corrected FeEDDHA to FeNa-EDDHA 8/1/2026 -->
 
     const MICRO_SALT_MW = {
-        'NaFeEDTA': 367.05, 'FeEDDHA': 435.15, 'FeCl3·6H2O': 270.30,
-        'MnSO4·H2O': 169.02, 'MnCl2·4H2O': 197.91, 'ZnSO4·7H2O': 287.56,
-        'H3BO3': 61.83, 'KI': 166.00, 'CuSO4·5H2O': 249.68, 'Na2MoO4·2H2O': 241.95, 'CoCl2·6H2O': 237.93,
+        'NaFeEDTA': 367.05, 'FeNa-EDDHA': 435.15, 'FeCl3·6H2O': 270.30,
+        'MnSO4·H2O': 169.02, 'MnCl2·4H2O': 197.91, 'ZnSO4·7H2O': 287.53, 'Zn(NO3)2·6H2O': 297.49,
+        'H3BO3': 61.83, 'KI': 166.00, 'CuSO4·5H2O': 249.69, 'Na2MoO4·2H2O': 241.95, 'CoCl2·6H2O': 237.93,
         'NiSO4·6H2O': 262.85
     };
+	<!-- Manually confirmed MW of micros 8/1/2026 -->
+
     const MICRO_SALT_ELEMENT = {
-        'NaFeEDTA': 'Fe', 'FeEDDHA': 'Fe', 'FeCl3·6H2O': 'Fe',
-        'MnSO4·H2O': 'Mn', 'MnCl2·4H2O': 'Mn', 'ZnSO4·7H2O': 'Zn',
+        'NaFeEDTA': 'Fe', 'FeNa-EDDHA': 'Fe', 'FeCl3·6H2O': 'Fe',
+        'MnSO4·H2O': 'Mn', 'MnCl2·4H2O': 'Mn', 'ZnSO4·7H2O': 'Zn', 'Zn(NO3)2·6H2O': 'Zn',
         'H3BO3': 'B', 'KI': 'I', 'CuSO4·5H2O': 'Cu', 'Na2MoO4·2H2O': 'Mo', 'CoCl2·6H2O': 'Co',
         'NiSO4·6H2O': 'Ni'
     };
     const ELEMENT_MW = { Fe: 55.845, Mn: 54.938, Zn: 65.38, B: 10.811, I: 126.90, Cu: 63.546, Mo: 95.95, Co: 58.933, Ni: 58.69 };
+<!-- Manually confirmed MW of ions 8/1/2026 -->
 
     const VIT_MW = { 
         'Myo-Inositol': 180.16, 
-        'Adenine Sulfate': 404.36, 
+        'Adenine Hemisulfate': 368.33, 
         'Casein Hydrolysate': 1.0, 
         'Peptone': 1.0,
         'Yeast Extract': 1.0,
         'Thiamine HCl': 337.27, 
         'Nicotinic Acid': 123.11, 
         'Pyridoxine HCl': 205.64, 
-        'Glycine': 75.07, 
+        'Glycine': 75.08, 
         'Folic Acid': 441.4, 
         'Biotin': 244.3, 
-        'Riboflavin': 376.36,
+        'Riboflavin': 376.37,
         'Ascorbic Acid': 176.12,
         'L-Glutamine': 146.14,
-        'L-Asparagine': 132.12
+        'L-Asparagine Monohydrate': 150.1
     };
+<!-- Changed Adenine sulfate to hemisulfate changed MW to phytotech version 8/1/2026 -->
 
     const ALL_MACRO_SALTS = Object.keys(MACRO_SALT_MW);
     const ALL_MICRO_SALTS = Object.keys(MICRO_SALT_MW);
@@ -587,22 +607,27 @@
             source: { citation: 'Murashige & Skoog (1962), Physiol. Plant. 15:473–497', verified: true },
             macroSaltsMass: { 'NH4NO3': 1650.0, 'KNO3': 1900.0, 'KH2PO4': 170.0, 'CaCl2·2H2O': 440.0, 'MgSO4·7H2O': 370.0 },
             microSaltsAbundantMass: { 'NaFeEDTA': 36.7, 'MnSO4·H2O': 16.9 },
-            microSaltsTraceMass: { 'ZnSO4·7H2O': 8.6, 'H3BO3': 6.2, 'KI': 0.83, 'CuSO4·5H2O': 0.25, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.025 },
+            microSaltsTraceMass: { 'ZnSO4·7H2O': 8.6, 'H3BO3': 6.2, 'KI': 0.83, 'CuSO4·5H2O': 0.025, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.025 },
             vitAbundantMass: { 'Myo-Inositol': 100 },
             vitTraceMass: { 'Thiamine HCl': 0.1, 'Nicotinic Acid': 0.5, 'Pyridoxine HCl': 0.5, 'Glycine': 2.0 }
         },
+		<!-- Manually checked MS: Corrected Cu it had 10x too much!! 8/1/2026 -->
+
         dkw: {
             name: 'DKW Basal',
             source: { citation: 'Driver & Kuniyaki (1984), HortScience 19:507–509', verified: true },
-            macroSaltsMass: { 'NH4NO3': 893.0, 'KNO3': 1420.0, 'K2SO4': 1054.0, 'KH2PO4': 360.0, 'Ca(NO3)2·4H2O': 2124.0, 'MgSO4·7H2O': 1503.0 },
-            microSaltsAbundantMass: { 'FeEDDHA': 44.6, 'MnSO4·H2O': 16.9 },
-            microSaltsTraceMass: { 'ZnSO4·7H2O': 14.4, 'H3BO3': 12.4, 'CuSO4·5H2O': 0.25, 'Na2MoO4·2H2O': 0.39 },
+            macroSaltsMass: { 'NH4NO3': 1416.0, 'K2SO4': 1559.0, 'KH2PO4': 265.0, 'Ca(NO3)2·4H2O': 1631.2, 'CaCl2·2H2O': 149.0, 'MgSO4·7H2O': 569.8 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 50.4, 'MnSO4·H2O': 33.5 },
+            microSaltsTraceMass: { 'Zn(NO3)2·6H2O': 17.0, 'H3BO3': 4.8, 'CuSO4·5H2O': 0.25, 'Na2MoO4·2H2O': 0.39,'NiSO4·6H2O': 0.005 },
             vitAbundantMass: { 'Myo-Inositol': 100 },
-            vitTraceMass: { 'Thiamine HCl': 1.0, 'Nicotinic Acid': 1.0, 'Pyridoxine HCl': 1.0, 'Glycine': 2.0 }
+            vitTraceMass: { 'Thiamine HCl': 1.0, 'Nicotinic Acid': 1.0, 'Glycine': 2.0 }
         },
+		<!-- Manually checked DKW: So wrong. So much to correct 8/1/2026 -->
+<!-- Where I left off checking stuff. Start here.  -->
+
         wpm: {
             name: 'WPM Medium',
-            source: { citation: 'Lloyd & McCown (1980), Comb. Proc. Int. Plant Prop. Soc. 30:421–427', verified: true },
+            source: { citation: 'Lloyd & McCown (1980), Comb. Proc. Int. Plant Prop. Soc. 30:421–427', verified: false },
             macroSaltsMass: { 'NH4NO3': 400.0, 'K2SO4': 990.0, 'KH2PO4': 170.0, 'Ca(NO3)2·4H2O': 556.0, 'CaCl2·2H2O': 96.0, 'MgSO4·7H2O': 370.0 },
             microSaltsAbundantMass: { 'NaFeEDTA': 36.7, 'MnSO4·H2O': 22.3 },
             microSaltsTraceMass: { 'ZnSO4·7H2O': 8.6, 'H3BO3': 6.2, 'CuSO4·5H2O': 0.25, 'Na2MoO4·2H2O': 0.25 },
@@ -611,7 +636,7 @@
         },
         b5: {
             name: 'Gamborg B-5',
-            source: { citation: 'Gamborg, Miller & Ojima (1968), Exp. Cell Res. 50:151–158', verified: true },
+            source: { citation: 'Gamborg, Miller & Ojima (1968), Exp. Cell Res. 50:151–158', verified: false },
             macroSaltsMass: { '(NH4)2SO4': 134.0, 'KNO3': 2500.0, 'NaH2PO4·H2O': 150.0, 'CaCl2·2H2O': 150.0, 'MgSO4·7H2O': 250.0 },
             microSaltsAbundantMass: { 'NaFeEDTA': 37.0, 'MnSO4·H2O': 10.0 },
             microSaltsTraceMass: { 'ZnSO4·7H2O': 2.0, 'H3BO3': 3.0, 'KI': 0.75, 'CuSO4·5H2O': 0.025, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.025 },
@@ -638,7 +663,7 @@
         },
         knudson: {
             name: 'Knudson C (Fern)',
-            source: { citation: 'Knudson (1946), Am. Orchid Soc. Bull. 15:214–217', verified: true },
+            source: { citation: 'Knudson (1946), Am. Orchid Soc. Bull. 15:214–217', verified: false },
             macroSaltsMass: { 'Ca(NO3)2·4H2O': 1000.0, '(NH4)2SO4': 500.0, 'KH2PO4': 250.0, 'MgSO4·7H2O': 250.0 },
             microSaltsAbundantMass: { 'NaFeEDTA': 16.5, 'MnSO4·H2O': 5.6 },
             microSaltsTraceMass: {},
@@ -646,7 +671,7 @@
         },
         anderson: {
             name: 'Anderson Salts',
-            source: { citation: 'Anderson (1980), Acta Hortic. 112:13–20', verified: true },
+            source: { citation: 'Anderson (1980), Acta Hortic. 112:13–20', verified: false },
             macroSaltsMass: { 'NH4NO3': 400.0, 'KNO3': 480.0, 'NaH2PO4·H2O': 330.6, 'CaCl2·2H2O': 332.0, 'MgSO4·7H2O': 180.5 },
             microSaltsAbundantMass: { 'NaFeEDTA': 36.7, 'MnSO4·H2O': 16.9 },
             microSaltsTraceMass: { 'ZnSO4·7H2O': 8.6, 'H3BO3': 6.2, 'CuSO4·5H2O': 0.025, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.025 },
@@ -673,7 +698,7 @@
         },
         chu: {
             name: 'Chu N6 Basal',
-            source: { citation: 'Chu et al. (1975), Sci. Sin. 18:659–668', verified: true },
+            source: { citation: 'Chu et al. (1975), Sci. Sin. 18:659–668', verified: false },
             macroSaltsMass: { '(NH4)2SO4': 463.0, 'KNO3': 2830.0, 'KH2PO4': 400.0, 'CaCl2·2H2O': 166.0, 'MgSO4·7H2O': 185.0 },
             microSaltsAbundantMass: { 'NaFeEDTA': 36.7, 'MnSO4·H2O': 11.2 },
             microSaltsTraceMass: { 'ZnSO4·7H2O': 1.5, 'H3BO3': 1.6 },
@@ -690,7 +715,7 @@
         },
         hoagland: {
             name: 'Hoagland Modified',
-            source: { citation: 'Hoagland & Arnon (1950), Calif. Agric. Exp. Stn. Circ. 347', verified: true },
+            source: { citation: 'Hoagland & Arnon (1950), Calif. Agric. Exp. Stn. Circ. 347', verified: false },
             macroSaltsMass: { 'NH4H2PO4': 115.0, 'KNO3': 505.0, 'Ca(NO3)2·4H2O': 944.0, 'MgSO4·7H2O': 493.0 },
             microSaltsAbundantMass: { 'NaFeEDTA': 33.0, 'MnCl2·4H2O': 1.81 },
             microSaltsTraceMass: { 'ZnSO4·7H2O': 0.22, 'H3BO3': 2.86, 'CuSO4·5H2O': 0.08, 'Na2MoO4·2H2O': 0.12 },
@@ -698,21 +723,12 @@
         },
         nn: {
             name: 'Nitsch & Nitsch (NN)',
-            source: { citation: 'Nitsch & Nitsch (1969) Science 163:85–87', verified: true },
+            source: { citation: 'Nitsch & Nitsch (1969) Science 163:85–87', verified: false },
             macroSaltsMass: { 'NH4NO3': 720.0, 'KNO3': 950.0, 'CaCl2·2H2O': 166.0, 'MgSO4·7H2O': 185.0, 'KH2PO4': 68.0, 'Na2SO4': 74.0 },
             microSaltsAbundantMass: { 'NaFeEDTA': 49.2, 'MnSO4·H2O': 25.0 },
             microSaltsTraceMass: { 'ZnSO4·7H2O': 10.0, 'H3BO3': 10.0, 'CuSO4·5H2O': 0.025, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.025 },
             vitAbundantMass: { 'Myo-Inositol': 100, 'Biotin': 0.05 },
             vitTraceMass: { 'Thiamine HCl': 0.5, 'Nicotinic Acid': 5.0, 'Pyridoxine HCl': 0.5, 'Glycine': 2.0, 'Folic Acid': 0.5 }
-        },
-        pct_houseplant: {
-            name: 'PCT Houseplant Mix',
-            source: { citation: 'Commercial blend; primary reference not published', verified: false },
-            macroSaltsMass: { 'NH4NO3': 880.0, 'KNO3': 1112.0, 'KH2PO4': 340.0, 'CaCl2·2H2O': 147.0, 'Ca(NO3)2·4H2O': 708.0, 'MgSO4·7H2O': 493.0 },
-            microSaltsAbundantMass: { 'NaFeEDTA': 44.1, 'MnSO4·H2O': 13.5 },
-            microSaltsTraceMass: { 'ZnSO4·7H2O': 7.2, 'H3BO3': 6.2, 'CuSO4·5H2O': 0.20, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.024 },
-            vitAbundantMass: { 'Myo-Inositol': 100.0 },
-            vitTraceMass: { 'Thiamine HCl': 1.0, 'Nicotinic Acid': 0.5, 'Pyridoxine HCl': 0.5, 'Glycine': 2.0 }
         },
         ree: {
             name: 'Ree QD 1 Medium',
@@ -725,7 +741,7 @@
         },
         sh: {
             name: 'Schenk & Hildebrandt (SH)',
-            source: { citation: 'Schenk & Hildebrandt (1972) Can. J. Bot. 50:199-204', verified: true },
+            source: { citation: 'Schenk & Hildebrandt (1972) Can. J. Bot. 50:199-204', verified: false },
             macroSaltsMass: { 'NH4NO3': 600.0, 'KNO3': 2500.0, 'CaCl2·2H2O': 166.0, 'MgSO4·7H2O': 400.0, 'KH2PO4': 300.0 },
             microSaltsAbundantMass: { 'NaFeEDTA': 33.0, 'MnSO4·H2O': 10.0 },
             microSaltsTraceMass: { 'ZnSO4·7H2O': 1.0, 'H3BO3': 5.0, 'CuSO4·5H2O': 0.2, 'Na2MoO4·2H2O': 0.1, 'CoCl2·6H2O': 0.1 },
@@ -734,9 +750,9 @@
         },
         sfn: {
             name: 'SFN (Sierra Gold Nurseries)',
-            source: { citation: 'SFN Reference Paper', verified: true },
+            source: { citation: 'SFN Reference Paper', verified: false },
             macroSaltsMass: { 'NH4NO3': 2100.0, 'KNO3': 1000.0, 'Ca(NO3)2·4H2O': 1200.0, 'Mg(NO3)2·2H2O': 862.7, 'MgSO4·7H2O': 1000.0, 'KH2PO4': 1400.0 },
-            microSaltsAbundantMass: { 'FeEDDHA': 100.0, 'MnSO4·H2O': 200.0 },
+            microSaltsAbundantMass: { 'FeNa-EDDHA': 100.0, 'MnSO4·H2O': 200.0 },
             microSaltsTraceMass: { 'H3BO3': 14.4, 'ZnSO4·7H2O': 60.0, 'CuSO4·5H2O': 0.25, 'Na2MoO4·2H2O': 3.9, 'CoCl2·6H2O': 0.06, 'NiSO4·6H2O': 0.005 },
             vitAbundantMass: {}, vitTraceMass: {}
         },
@@ -751,7 +767,7 @@
         },
         white: {
             name: "White's Basal Medium",
-            source: { citation: 'White (1963) "The Cultivation of Animal and Plant Cells"', verified: true },
+            source: { citation: 'White (1963) "The Cultivation of Animal and Plant Cells"', verified: false },
             macroSaltsMass: { 'KNO3': 80.0, 'Na2SO4': 200.0, 'KCl': 65.0, 'Ca(NO3)2·4H2O': 288.0, 'MgSO4·7H2O': 738.0, 'NaH2PO4·H2O': 16.5 },
             microSaltsAbundantMass: { 'NaFeEDTA': 3.3, 'MnSO4·H2O': 6.6 },
             microSaltsTraceMass: { 'ZnSO4·7H2O': 2.6, 'H3BO3': 1.5, 'CuSO4·5H2O': 0.01, 'Na2MoO4·2H2O': 0.01 },
@@ -1099,18 +1115,18 @@
             });
         } else if (tabName === 'micro') {
             ALL_MICRO_SALTS.forEach(salt => {
-                const isMajor = ['NaFeEDTA', 'FeEDDHA', 'FeCl3·6H2O', 'MnSO4·H2O', 'MnCl2·4H2O'].includes(salt);
+                const isMajor = ['NaFeEDTA', 'FeNa-EDDHA', 'FeCl3·6H2O', 'MnSO4·H2O', 'MnCl2·4H2O'].includes(salt);
                 const cap = isMajor ? 500 : 50;
                 const step = isMajor ? 0.1 : 0.01;
                 
-                const isTrace = ["ZnSO4·7H2O", "H3BO3", "KI", "CuSO4·5H2O", "Na2MoO4·2H2O", "CoCl2·6H2O", "NiSO4·6H2O"].includes(salt);
+                const isTrace = ["ZnSO4·7H2O", "Zn(NO3)2·6H2O", "H3BO3", "KI", "CuSO4·5H2O", "Na2MoO4·2H2O", "CoCl2·6H2O", "NiSO4·6H2O"].includes(salt);
                 const val = isTrace ? (customLabRecipe.microSaltsTraceMass[salt] || 0) : (customLabRecipe.microSaltsAbundantMass[salt] || 0);
                 const targetKey = isTrace ? 'microSaltsTraceMass' : 'microSaltsAbundantMass';
                 grid.appendChild(createSliderElement(salt, val, 0, cap, step, targetKey));
             });
         } else if (tabName === 'organic') {
             ALL_VITAMINS.forEach(vit => {
-                const isAbundant = ['Myo-Inositol', 'Adenine Sulfate', 'Casein Hydrolysate', 'Peptone', 'Yeast Extract'].includes(vit);
+                const isAbundant = ['Myo-Inositol', 'Adenine Hemisulfate', 'Casein Hydrolysate', 'Peptone', 'Yeast Extract'].includes(vit);
                 const cap = isAbundant ? 1000 : 20;
                 const step = isAbundant ? 1 : 0.1;
                 const val = isAbundant ? (customLabRecipe.vitAbundantMass[vit] || 0) : (customLabRecipe.vitTraceMass[vit] || 0);
@@ -1123,31 +1139,76 @@
     }
 
     function createSliderElement(name, value, min, max, step, targetGroupKey) {
-        const item = document.createElement('div');
-        item.className = 'slider-item';
+		const item = document.createElement('div');
+		item.className = 'slider-item';
 
-        const meta = document.createElement('div');
-        meta.className = 'slider-meta';
-        meta.innerHTML = `<span>${formatDisplayLabel(name)}</span><span id="val_${name}">${value} mg/L</span>`;
-        
-        const input = document.createElement('input');
-        input.type = 'range';
-        input.min = min;
-        input.max = max;
-        input.step = step;
-        input.value = value;
+		const meta = document.createElement('div');
+		meta.className = 'slider-meta';
+		
+		// Label for the compound
+		const nameSpan = document.createElement('span');
+		nameSpan.innerText = formatDisplayLabel(name);
 
-        input.addEventListener('input', (e) => {
-            const newVal = parseFloat(e.target.value);
-            document.getElementById(`val_${name}`).innerText = `${newVal} mg/L`;
-            customLabRecipe[targetGroupKey][name] = newVal;
-            renderEngine(); 
-        });
+		// Container for number input + unit label
+		const inputWrapper = document.createElement('div');
+		inputWrapper.style.display = 'flex';
+		inputWrapper.style.alignItems = 'center';
+		inputWrapper.style.gap = '4px';
 
-        item.appendChild(meta);
-        item.appendChild(input);
-        return item;
-    }
+		// Direct numeric entry input
+		const numInput = document.createElement('input');
+		numInput.type = 'number';
+		numInput.className = 'slider-meta-input';
+		numInput.min = min;
+		numInput.max = max;
+		numInput.step = step;
+		numInput.value = value;
+
+		const unitSpan = document.createElement('span');
+		unitSpan.innerText = 'mg/L';
+
+		inputWrapper.appendChild(numInput);
+		inputWrapper.appendChild(unitSpan);
+
+		meta.appendChild(nameSpan);
+		meta.appendChild(inputWrapper);
+		
+		// Range slider
+		const rangeInput = document.createElement('input');
+		rangeInput.type = 'range';
+		rangeInput.min = min;
+		rangeInput.max = max;
+		rangeInput.step = step;
+		rangeInput.value = value;
+
+		// Helper to sync values and trigger graph updates
+		const updateVal = (newVal) => {
+			let parsed = parseFloat(newVal);
+			if (isNaN(parsed)) parsed = 0;
+			
+			// Clamp numerical typing within slider min/max bounds
+			parsed = Math.max(min, Math.min(max, parsed));
+
+			customLabRecipe[targetGroupKey][name] = parsed;
+			renderEngine();
+		};
+
+		// Event listener: Slider moved
+		rangeInput.addEventListener('input', (e) => {
+			numInput.value = e.target.value;
+			updateVal(e.target.value);
+		});
+
+		// Event listener: Typed directly into text box
+		numInput.addEventListener('input', (e) => {
+			rangeInput.value = e.target.value || 0;
+			updateVal(e.target.value);
+		});
+
+		item.appendChild(meta);
+		item.appendChild(rangeInput);
+		return item;
+	}
 
     document.getElementById('labExitBtn').addEventListener('click', () => {
         labActive = false;
