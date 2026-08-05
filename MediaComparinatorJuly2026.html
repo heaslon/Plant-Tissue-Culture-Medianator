@@ -622,7 +622,6 @@
             vitTraceMass: { 'Thiamine HCl': 1.0, 'Nicotinic Acid': 1.0, 'Glycine': 2.0 }
         },
 		<!-- Manually checked DKW: So wrong. So much to correct 8/1/2026 -->
-<!-- Where I left off checking stuff. Start here.  -->
 
         wpm: {
             name: 'WPM Medium',
@@ -681,40 +680,48 @@
 
         anderson: {
             name: 'Anderson Salts',
-            source: { citation: 'Anderson (1980), Acta Hortic. 112:13–20', verified: false },
-            macroSaltsMass: { 'NH4NO3': 400.0, 'KNO3': 480.0, 'NaH2PO4·H2O': 330.6, 'CaCl2·2H2O': 332.0, 'MgSO4·7H2O': 180.5 },
-            microSaltsAbundantMass: { 'NaFeEDTA': 36.7, 'MnSO4·H2O': 16.9, 'ZnSO4·7H2O': 8.6, 'H3BO3': 6.2 },
-            microSaltsTraceMass: {  'CuSO4·5H2O': 0.025, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.025 },
-            vitAbundantMass: { 'Myo-Inositol': 100 },
-            vitTraceMass: { 'Thiamine HCl': 0.4, 'Nicotinic Acid': 0.3, 'Pyridoxine HCl': 0.5, 'Glycine': 0.3 }
+            source: { citation: 'Anderson (1980), Acta Hortic. 112:13–20', verified: true },
+            macroSaltsMass: { 'NH4NO3': 400.0, 'KNO3': 480.0, 'NaH2PO4·H2O': 380, 'CaCl2·2H2O': 440.0, 'MgSO4·7H2O': 370 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 73.4, 'MnSO4·H2O': 16.9, 'ZnSO4·7H2O': 8.6, 'H3BO3': 6.2 },
+            microSaltsTraceMass: { 'KI': 0.3,  'CuSO4·5H2O': 0.025, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.025 },
+            vitAbundantMass: { 'Myo-Inositol': 100, 'Adenine Hemisulfate': 73 },
+            vitTraceMass: { 'Thiamine HCl': 0.4 }
         },
+		<!-- Manually checked Anderson Paper. Lol typos in 1980 paper CaSO4 instead of CuSO4. Ma2MoO4 instead of Na2MoO4. : Many wrong OK 8/5/2026 -->
+						
         blaydes: {
             name: 'Blaydes Medium',
-            source: { citation: 'Blaydes (1966), Physiol. Plant. 19:748–753', verified: false },
-            macroSaltsMass: { 'NH4NO3': 1000.0, 'KNO3': 1000.0, 'KH2PO4': 300.0, 'CaCl2·2H2O': 220.0, 'MgSO4·7H2O': 34.0 },
-            microSaltsAbundantMass: { 'NaFeEDTA': 73.5, 'MnSO4·H2O': 4.4, 'ZnSO4·7H2O': 1.5, 'H3BO3': 1.6 },
-            microSaltsTraceMass: {  },
+            source: { citation: 'Blaydes (1966), Physiol. Plant. 19:748–753', verified: true },
+            macroSaltsMass: { 'NH4NO3': 1000.0, 'KNO3': 100.0, 'KH2PO4': 300.0, 'KCl': 65, 'Ca(NO3)2·4H2O': 350, 'MgSO4·7H2O': 35.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 73.4, 'MnSO4·H2O': 4.4, 'ZnSO4·7H2O': 1.5, 'H3BO3': 1.6 },
+            microSaltsTraceMass: { 'KI': 0.8 },
             vitAbundantMass: {},
             vitTraceMass: { 'Thiamine HCl': 0.1, 'Glycine': 2.0 }
         },
+		<!-- Manually checked phytotechB514: Many wrong OK 8/5/2026 -->
+
         chee: {
             name: 'Chee C2d Vitis',
-            source: { citation: 'Chee & Pool (1987), HortScience 22:1155–1157', verified: false },
-            macroSaltsMass: { 'NH4NO3': 412.0, 'KNO3': 1455.0, 'KH2PO4': 170.0, 'CaCl2·2H2O': 440.0, 'MgSO4·7H2O': 370.0 },
-            microSaltsAbundantMass: { 'NaFeEDTA': 36.7, 'MnSO4·H2O': 16.9, 'ZnSO4·7H2O': 8.6, 'H3BO3': 6.2 },
-            microSaltsTraceMass: {  'CuSO4·5H2O': 0.25, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.02 },
-            vitAbundantMass: { 'Myo-Inositol': 100 },
-            vitTraceMass: { 'Thiamine HCl': 1.0, 'Nicotinic Acid': 1.0, 'Pyridoxine HCl': 1.0, 'Glycine': 2.0 }
+            source: { citation: 'Chee & Pool (1987), HortScience 22:1155–1157', verified: true },
+            macroSaltsMass: { 'NH4NO3': 1650, 'KNO3': 1900.0, 'KH2PO4': 170.0, 'Ca(NO3)2·4H2O': 708, 'MgSO4·7H2O': 370.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 36.7, 'MnSO4·H2O': 0.845, 'ZnSO4·7H2O': 8.6, 'H3BO3': 6.2 },
+            microSaltsTraceMass: {  'CuSO4·5H2O': 0.025, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.025 },
+            vitAbundantMass: { 'Myo-Inositol': 10 },
+            vitTraceMass: { 'Thiamine HCl': 1.0, 'Nicotinic Acid': 1.0, 'Pyridoxine HCl': 1.0 }
         },
+		<!-- Manually checked phytotechC287: Many wrong OK 8/5/2026 -->
+
         chu: {
             name: 'Chu N6 Basal',
-            source: { citation: 'Chu et al. (1975), Sci. Sin. 18:659–668', verified: false },
+            source: { citation: 'Chu et al. (1975), Sci. Sin. 18:659–668', verified: true },
             macroSaltsMass: { '(NH4)2SO4': 463.0, 'KNO3': 2830.0, 'KH2PO4': 400.0, 'CaCl2·2H2O': 166.0, 'MgSO4·7H2O': 185.0 },
-            microSaltsAbundantMass: { 'NaFeEDTA': 36.7, 'MnSO4·H2O': 11.2, 'ZnSO4·7H2O': 1.5, 'H3BO3': 1.6 },
-            microSaltsTraceMass: {  },
+            microSaltsAbundantMass: { 'NaFeEDTA': 36.7, 'MnSO4·H2O': 3.3, 'ZnSO4·7H2O': 1.5, 'H3BO3': 1.6 },
+            microSaltsTraceMass: { 'KI': 0.8 },
             vitAbundantMass: {},
             vitTraceMass: { 'Thiamine HCl': 1.0, 'Nicotinic Acid': 0.5, 'Pyridoxine HCl': 0.5, 'Glycine': 2.0 }
         },
+		<!-- Manually checked phytotechC167: Many wrong OK 8/5/2026 -->
+
         heller: {
             name: 'Heller Basal',
             source: { citation: 'Heller (1953), Ann. Sci. Nat. Bot. Biol. Veg. 14:1–223', verified: false },
