@@ -406,7 +406,7 @@
                 <label class="checkbox-label"><input type="checkbox" value="blaydes"> Blaydes Modified Medium</label>
                 <label class="checkbox-label"><input type="checkbox" value="chee"> Chee & Pool C2d Vitis</label>
                 <label class="checkbox-label"><input type="checkbox" value="chu"> Chu N6 Basal Salts</label>
-                <label class="checkbox-label"><input type="checkbox" value="heller"> Heller Basal Mixture</label>
+                <label class="checkbox-label"><input type="checkbox" value="heller"> Heller Basal Mixture (-Al)</label>
                 <label class="checkbox-label"><input type="checkbox" value="hoagland"> Hoagland Modified Salts</label>
                 <label class="checkbox-label"><input type="checkbox" value="nn"> Nitsch & Nitsch (NN)</label>
                 <label class="checkbox-label"><input type="checkbox" value="ree"> Ree QD 1 Medium</label>
@@ -723,30 +723,37 @@
 		<!-- Manually checked phytotechC167: Many wrong OK 8/5/2026 -->
 
         heller: {
-            name: 'Heller Basal',
-            source: { citation: 'Heller (1953), Ann. Sci. Nat. Bot. Biol. Veg. 14:1–223', verified: false },
-            macroSaltsMass: { 'NaNO3': 630.0, 'KCl': 750.0, 'KH2PO4': 750.0, 'CaCl2·2H2O': 68.0, 'MgSO4·7H2O': 517.0 },
-            microSaltsAbundantMass: { 'FeCl3·6H2O': 10.0, 'MnSO4·H2O': 0.1, 'ZnSO4·7H2O': 10.0, 'H3BO3': 1.0 },
-            microSaltsTraceMass: {  'CuSO4·5H2O': 0.03, 'Na2MoO4·2H2O': 0.03 },
+            name: 'Heller Basal (-Al)',
+            source: { citation: 'Heller (1953), Ann. Sci. Nat. Bot. Biol. Veg. 14:1–223 — without aluminum', verified: true },
+            macroSaltsMass: { 'NaNO3': 600.0, 'KCl': 750.0, 'NaH2PO4·H2O': 125.0, 'CaCl2·2H2O': 75.0, 'MgSO4·7H2O': 250.0 },
+            microSaltsAbundantMass: { 'FeCl3·6H2O': 1.67, 'MnSO4·H2O': 0.076, 'ZnSO4·7H2O': 1.0, 'H3BO3': 1.0 },
+            microSaltsTraceMass: {  'CuSO4·5H2O': 0.03, 'Na2MoO4·2H2O': 0.05, 'KI': 0.01 },
             vitAbundantMass: {}, vitTraceMass: {}
         },
+		<!-- Manually checked phytotechH393: Many wrong. Did not include AlCl because we don't need aluminum 8/8/2026 -->
+
         hoagland: {
             name: 'Hoagland Modified',
-            source: { citation: 'Hoagland & Arnon (1950), Calif. Agric. Exp. Stn. Circ. 347', verified: false },
-            macroSaltsMass: { 'NH4H2PO4': 115.0, 'KNO3': 505.0, 'Ca(NO3)2·4H2O': 944.0, 'MgSO4·7H2O': 493.0 },
-            microSaltsAbundantMass: { 'NaFeEDTA': 33.0, 'MnCl2·4H2O': 1.81, 'ZnSO4·7H2O': 0.22, 'H3BO3': 2.86 },
-            microSaltsTraceMass: {  'CuSO4·5H2O': 0.08, 'Na2MoO4·2H2O': 0.12 },
+            source: { citation: 'Hoagland & Arnon (1950), Calif. Agric. Exp. Stn. Circ. 347', verified: true },
+            macroSaltsMass: { 'NH4H2PO4': 115.0, 'KNO3': 606.6, 'Ca(NO3)2·4H2O': 945.0, 'MgSO4·7H2O': 493.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 3.3, 'MnCl2·4H2O': 1.81, 'ZnSO4·7H2O': 0.22, 'H3BO3': 2.86 },
+            microSaltsTraceMass: {  'CuSO4·5H2O': 0.08, 'Na2MoO4·2H2O': 0.027 },
             vitAbundantMass: {}, vitTraceMass: {}
         },
+		<!-- Manually checked phytotechH353: corrected 8/8/2026 -->
+
         nn: {
             name: 'Nitsch & Nitsch (NN)',
-            source: { citation: 'Nitsch & Nitsch (1969) Science 163:85–87', verified: false },
-            macroSaltsMass: { 'NH4NO3': 720.0, 'KNO3': 950.0, 'CaCl2·2H2O': 166.0, 'MgSO4·7H2O': 185.0, 'KH2PO4': 68.0, 'Na2SO4': 74.0 },
-            microSaltsAbundantMass: { 'NaFeEDTA': 49.2, 'MnSO4·H2O': 25.0, 'ZnSO4·7H2O': 10.0, 'H3BO3': 10.0 },
-            microSaltsTraceMass: { 'CuSO4·5H2O': 0.025, 'Na2MoO4·2H2O': 0.25, 'CoCl2·6H2O': 0.025 },
-            vitAbundantMass: { 'Myo-Inositol': 100, 'Biotin': 0.05 },
-            vitTraceMass: { 'Thiamine HCl': 0.5, 'Nicotinic Acid': 5.0, 'Pyridoxine HCl': 0.5, 'Glycine': 2.0, 'Folic Acid': 0.5 }
+            source: { citation: 'Nitsch & Nitsch (1969) Science 163:85–87', verified: true },
+            macroSaltsMass: { 'NH4NO3': 720.0, 'KNO3': 950.0, 'CaCl2·2H2O': 220.0, 'MgSO4·7H2O': 185.0, 'KH2PO4': 68.0 },
+            microSaltsAbundantMass: { 'NaFeEDTA': 36.7, 'MnSO4·H2O': 18.9, 'ZnSO4·7H2O': 10.0, 'H3BO3': 10.0 },
+            microSaltsTraceMass: { 'CuSO4·5H2O': 0.025, 'Na2MoO4·2H2O': 0.25 },
+            vitAbundantMass: { 'Myo-Inositol': 100},
+            vitTraceMass: { 'Thiamine HCl': 0.5, 'Biotin': 0.05, 'Nicotinic Acid': 5.0, 'Pyridoxine HCl': 0.5, 'Glycine': 2.0, 'Folic Acid': 0.5 }
         },
+		
+		<!-- Manually checked phytotechN616: Many wrong corrected 8/8/2026 -->
+
         ree: {
             name: 'Ree QD 1 Medium',
             source: { citation: 'Unverified — could not confirm a primary source', verified: false },
@@ -784,13 +791,14 @@
         },
         white: {
             name: "White's Basal Medium",
-            source: { citation: 'White (1963) "The Cultivation of Animal and Plant Cells"', verified: false },
-            macroSaltsMass: { 'KNO3': 80.0, 'Na2SO4': 200.0, 'KCl': 65.0, 'Ca(NO3)2·4H2O': 288.0, 'MgSO4·7H2O': 738.0, 'NaH2PO4·H2O': 16.5 },
-            microSaltsAbundantMass: { 'NaFeEDTA': 3.3, 'MnSO4·H2O': 6.6, 'ZnSO4·7H2O': 2.6, 'H3BO3': 1.5 },
-            microSaltsTraceMass: {  'CuSO4·5H2O': 0.01, 'Na2MoO4·2H2O': 0.01 },
-            vitAbundantMass: { 'Myo-Inositol': 100 },
-            vitTraceMass: { 'Thiamine HCl': 0.1, 'Nicotinic Acid': 0.5, 'Pyridoxine HCl': 0.1, 'Glycine': 3.0 }
+            source: { citation: 'White (1963) "The Cultivation of Animal and Plant Cells"', verified: true },
+            macroSaltsMass: { 'KNO3': 80.0, 'Na2SO4': 200.0, 'KCl': 65.0, 'Ca(NO3)2·4H2O': 300.0, 'MgSO4·7H2O': 720.0, 'NaH2PO4·H2O': 19.0 },
+            microSaltsAbundantMass: { 'FeSO4·7H2O': 5.6, 'MnSO4·H2O': 5.31, 'ZnSO4·7H2O': 3.0, 'H3BO3': 1.5 },
+            microSaltsTraceMass: {  'CuSO4·5H2O': 0.001, 'Na2MoO4·2H2O': 0.002, 'KI': 0.75 },
+            vitAbundantMass: {}, vitTraceMass: {}
         }
+		<!-- Manually checked phytotechW898: Many wrong corrected 8/8/2026 -->
+
     };
 
     let formulations = {};
@@ -1278,7 +1286,13 @@
         const printWindow = window.open('', '_blank');
         let htmlContent = `<!DOCTYPE html><html><head><title>PTC Production Stock Sheets</title><style>body { font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif; color: #000; background: #fff; margin: 20px; font-size: 13px; }.sheet { page-break-after: always; border: 1px solid #ccc; padding: 20px; margin-bottom: 20px; border-radius: 6px; }.sheet:last-child { page-break-after: avoid; }h2 { margin-top: 0; font-size: 1.4rem; border-bottom: 2px solid #000; padding-bottom: 6px; margin-bottom: 5px; }.subtitle { font-style: italic; color: #555; margin-bottom: 15px; font-size: 0.85rem; }table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }th, td { border: 1px solid #aaa; padding: 6px 10px; text-align: left; }th { background-color: #f2f2f2; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }.section-header { background-color: #e2e8f0; font-weight: bold; font-size: 0.9rem; padding: 6px 10px; }.aliquot-row { font-style: italic; background-color: #f8fafc; font-size: 0.85rem; color: #334155; }@media print { body { margin: 0; } .sheet { border: none; padding: 0; margin-bottom: 0; } }</style></head><body>`;
 
-        checkedMedia.forEach(mKey => {
+		const formatMg = val => {
+					let rounded = Math.round(val);
+					if (rounded > 0) return rounded;
+					let fixed = val.toFixed(2);
+					return parseFloat(fixed) === 0 ? val.toFixed(3) : fixed;
+				};
+checkedMedia.forEach(mKey => {
             const f = formulations[mKey]; if (!f) return;
             const displayTitle = (mKey === 'lab_custom') ? `Lab Custom: ${customLabRecipe.name}` : f.name;
 
@@ -1314,15 +1328,15 @@
             }
             if (ironStock.length > 0) {
                 htmlContent += `<tr class="section-header"><td colspan="3">3. Iron & Chelate Stock (Isolated Concentrate &mdash; 100x)</td></tr><tr class="aliquot-row"><td colspan="3">&bull; Medium Pipette Target: Use 10 mL of this stock per final Liter of media. Store in dark amber bottle.</td></tr>`;
-                ironStock.forEach(item => { htmlContent += `<tr><td style="padding-left: 15px;">${item.name}</td><td>${Math.round(item.mass1x * 100)} mg</td><td></td></tr>`; });
+                ironStock.forEach(item => { htmlContent += `<tr><td style="padding-left: 15px;">${item.name}</td><td>${formatMg(item.mass1x * 100)} mg</td><td></td></tr>`; });
             }
             if (microStock.length > 0) {
                 htmlContent += `<tr class="section-header"><td colspan="3">4. Micronutrient Stock Solution (&mdash; 100x)</td></tr><tr class="aliquot-row"><td colspan="3">&bull; Medium Pipette Target: Use 10 mL of this stock per final Liter of media.</td></tr>`;
-                microStock.forEach(item => { htmlContent += `<tr><td style="padding-left: 15px;">${item.name}</td><td>${Math.round(item.mass1x * 100)} mg</td><td></td></tr>`; });
+                microStock.forEach(item => { htmlContent += `<tr><td style="padding-left: 15px;">${item.name}</td><td>${formatMg(item.mass1x * 100)} mg</td><td></td></tr>`; });
             }
             if (vitOrganicsStock.length > 0) {
                 htmlContent += `<tr class="section-header"><td colspan="3">5. Vitamin & Organics Stock Solution (&mdash; 100x)</td></tr><tr class="aliquot-row"><td colspan="3">&bull; Medium Pipette Target: Use 10 mL of this stock per final Liter of media. Store frozen.</td></tr>`;
-                vitOrganicsStock.forEach(item => { htmlContent += `<tr><td style="padding-left: 15px;">${item.name}</td><td>${Math.round(item.mass1x * 100)} mg</td><td></td></tr>`; });
+                vitOrganicsStock.forEach(item => { htmlContent += `<tr><td style="padding-left: 15px;">${item.name}</td><td>${formatMg(item.mass1x * 100)} mg</td><td></td></tr>`; });
             }
             htmlContent += `</tbody></table></div>`;
         });
