@@ -5,4 +5,4 @@ Download the html file and open in it in your favorite browser. Hopefully it is 
 
 Custom Recipes are not saved if you close the webpage. I'll add a feature to save recipes locally at some point.
 
-Let me know if there any errors in the Recipes and I'll correct them.
+ All recipes have been manually checked. Let me know if there any errors in the Recipes and I'll correct them.
