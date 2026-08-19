@@ -442,7 +442,14 @@
                 <label class="checkbox-label" style="font-weight: 600;">
                     <input type="checkbox" id="darkModeToggle" checked> Dark Mode
                 </label>
+				<button type="button" onclick="exportCustomRecipes()" style="flex: 1; padding: 6px; font-size: 0.8rem; cursor: pointer; background: #374151; color: #fff; border: 1px solid #4b5563; border-radius: 4px;">
+				📤 Export Custom Recipes (.json)
+				</button>
+				<button type="button" onclick="document.getElementById('importJsonInput').click()" style="flex: 1; padding: 6px; font-size: 0.8rem; cursor: pointer; background: #374151; color: #fff; border: 1px solid #4b5563; border-radius: 4px;">
+				📥 Import Custom Recipes (.json)
+				</button>
             </div>
+			<input type="file" id="importJsonInput" accept=".json" style="display: none;" onchange="importCustomRecipes(event)">
         </div>
 
         <div>
@@ -1255,6 +1262,92 @@
         renderEngine();
     });
 
+   // --- LOCAL STORAGE & SIDEBAR MANAGEMENT ---
+    const LOCAL_STORAGE_KEY = 'ptc_custom_formulations_v1';
+
+    function loadCustomRecipes() {
+        try {
+            const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (saved) {
+                const customData = JSON.parse(saved);
+                Object.keys(customData).forEach(key => {
+                    RAW_FORMULATIONS[key] = customData[key];
+                    formulations[key] = buildFormulation(RAW_FORMULATIONS[key]);
+                });
+            }
+        } catch (e) {
+            console.error("Failed to load custom recipes:", e);
+        }
+    }
+
+    function persistCustomRecipes() {
+        try {
+            const customData = {};
+            Object.keys(RAW_FORMULATIONS).forEach(key => {
+                if (key.startsWith('custom_')) {
+                    customData[key] = RAW_FORMULATIONS[key];
+                }
+            });
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(customData));
+        } catch (e) {
+            console.error("Failed to save custom recipes:", e);
+        }
+    }
+
+	function renderCustomSidebarItems(newlyCreatedKey = null) {
+        const container = document.getElementById('mediaCheckboxes');
+        if (!container) return;
+
+        // 1. Capture currently checked state for custom items before wiping the DOM
+        const checkedStateMap = {};
+        container.querySelectorAll('.custom-recipe-item input[type="checkbox"]').forEach(input => {
+            checkedStateMap[input.value] = input.checked;
+        });
+
+        // 2. Remove existing custom recipe elements
+        const existingCustomEls = container.querySelectorAll('.custom-recipe-item');
+        existingCustomEls.forEach(el => el.remove());
+
+        // 3. Re-render custom items, preserving existing checked states
+        Object.keys(RAW_FORMULATIONS).forEach(key => {
+            if (key.startsWith('custom_')) {
+                const item = RAW_FORMULATIONS[key];
+                const label = document.createElement('label');
+                label.className = 'checkbox-label custom-recipe-item';
+                label.style.cssText = 'color: #34d399; font-weight: bold; display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; margin: 2px 0;';
+                
+                // Keep previously checked items checked, AND check the new recipe if it matches newlyCreatedKey
+                const isChecked = (checkedStateMap[key] === true || key === newlyCreatedKey) ? 'checked' : '';
+
+                label.innerHTML = `
+                    <span>
+                        <input type="checkbox" value="${key}" ${isChecked}> ${item.name}
+                    </span>
+                    <button type="button" onclick="deleteCustomRecipe('${key}')" title="Delete recipe" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.85rem; padding: 0 4px; font-weight:bold;">✕</button>
+                `;
+
+                label.querySelector('input').addEventListener('change', renderEngine);
+                container.appendChild(label);
+            }
+        });
+    }
+
+    window.deleteCustomRecipe = function(key) {
+        if (!key.startsWith('custom_')) return;
+        if (confirm(`Are you sure you want to delete "${RAW_FORMULATIONS[key].name}"?`)) {
+            delete RAW_FORMULATIONS[key];
+            delete formulations[key];
+            persistCustomRecipes();
+            renderCustomSidebarItems();
+            renderEngine();
+        }
+    };
+
+    // Load saved formulations into memory on script initialization
+    loadCustomRecipes();
+    renderCustomSidebarItems();
+
+    // UPDATED SAVE BUTTON LISTENER
     document.getElementById('labSaveBtn').addEventListener('click', () => {
         const uniqueId = 'custom_' + Date.now();
         RAW_FORMULATIONS[uniqueId] = {
@@ -1269,19 +1362,91 @@
         
         formulations[uniqueId] = buildFormulation(RAW_FORMULATIONS[uniqueId]);
 
-        const group = document.getElementById('mediaCheckboxes');
-        const label = document.createElement('label');
-        label.className = 'checkbox-label';
-        label.innerHTML = `<input type="checkbox" value="${uniqueId}" checked> ${customLabRecipe.name}`;
-        group.appendChild(label);
-
-        label.querySelector('input').addEventListener('change', renderEngine);
+        persistCustomRecipes();
+        
+        // PASS THE NEW ID HERE TO AUTO-CHECK IT ON CREATION
+        renderCustomSidebarItems(uniqueId);
 
         alert(`Successfully saved "${customLabRecipe.name}" as a permanent formulation reference choice!`);
         labActive = false;
         document.getElementById('labPanel').style.display = 'none';
         renderEngine();
     });
+
+// --- IMPORT & EXPORT FUNCTIONS ---
+
+    window.exportCustomRecipes = function() {
+        const customData = {};
+        Object.keys(RAW_FORMULATIONS).forEach(key => {
+            if (key.startsWith('custom_')) {
+                customData[key] = RAW_FORMULATIONS[key];
+            }
+        });
+
+        if (Object.keys(customData).length === 0) {
+            alert("No custom recipes found to export!");
+            return;
+        }
+
+	// Format current date as YYYY-MM-DD
+		const now = new Date();
+		const year = now.getFullYear();
+		const month = String(now.getMonth() + 1).padStart(2, '0');
+		const day = String(now.getDate()).padStart(2, '0');
+		const dateStr = `${year}-${month}-${day}`;
+
+		const fileName = `custom_recipes_${dateStr}.json`;
+
+		const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(customData, null, 2));
+		const downloadAnchor = document.createElement('a');
+		downloadAnchor.setAttribute("href", dataStr);
+		downloadAnchor.setAttribute("download", fileName);
+		document.body.appendChild(downloadAnchor);
+		downloadAnchor.click();
+		downloadAnchor.remove();
+    };
+
+    window.importCustomRecipes = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                let importedCount = 0;
+
+                Object.keys(importedData).forEach(key => {
+                    const recipe = importedData[key];
+                    // Verify structural integrity before adding
+                    if (recipe && recipe.name && recipe.macroSaltsMass) {
+                        // Re-key with a fresh ID to avoid collisions
+                        const newKey = 'custom_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                        RAW_FORMULATIONS[newKey] = recipe;
+                        formulations[newKey] = buildFormulation(recipe);
+                        importedCount++;
+                    }
+                });
+
+                if (importedCount > 0) {
+                    persistCustomRecipes();
+                    renderCustomSidebarItems();
+                    renderEngine();
+                    alert(`Successfully imported ${importedCount} recipe(s)!`);
+                } else {
+                    alert("No valid formulation recipes found in the selected file.");
+                }
+            } catch (err) {
+                console.error("Error reading JSON file:", err);
+                alert("Failed to parse JSON file. Please check the file format.");
+            }
+            // Reset input so the same file can be uploaded again if needed
+            event.target.value = '';
+        };
+
+        reader.readAsText(file);
+    };
+
 
     document.getElementById('toggleAllMedia').addEventListener('click', function(e) {
         const checkboxes = document.querySelectorAll('#mediaCheckboxes input[type="checkbox"]');
