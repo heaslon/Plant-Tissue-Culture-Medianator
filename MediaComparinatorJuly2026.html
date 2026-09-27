@@ -1189,7 +1189,7 @@
         renderEngine();
     }
 
-    function createSliderElement(name, value, min, max, step, targetGroupKey) {
+function createSliderElement(name, value, min, max, step, targetGroupKey) {
     const item = document.createElement('div');
     item.className = 'slider-item';
 
@@ -1211,7 +1211,6 @@
     numInput.type = 'number';
     numInput.className = 'slider-meta-input';
     numInput.min = min;
-    // Unset initial numInput.max so native up-arrow spinner can step past default range
     numInput.step = step;
     numInput.value = value;
 
@@ -1235,36 +1234,44 @@
     rangeInput.step = step;
     rangeInput.value = value;
 
-    // Helper to sync values and trigger graph updates
-    const updateVal = (newVal) => {
-        let parsed = parseFloat(newVal);
+    // Helper to sync values and trigger updates
+    const updateVal = (rawVal, sourceInput) => {
+        let parsed = parseFloat(rawVal);
         if (isNaN(parsed)) parsed = 0;
         
-        // Enforce minimum, but allow value to scale upward freely
+        // Enforce minimum, allow scaling upward
         parsed = Math.max(min, parsed);
 
-        // Dynamically expand slider and input max if typed/stepped value exceeds current upper bound
+        // Dynamically expand range bounds if value exceeds max
         if (parsed > currentMax) {
             currentMax = Math.ceil(parsed);
             rangeInput.max = currentMax;
             numInput.max = currentMax;
         }
 
+        // Always update slider position
         rangeInput.value = parsed;
-        numInput.value = parsed;
+
+        // ONLY overwrite the text input if the event came from the range slider.
+        // DO NOT write back to numInput while typing in it, as it strips trailing dots ("0.")
+        if (sourceInput === 'range') {
+            numInput.value = parsed;
+        }
 
         customLabRecipe[targetGroupKey][name] = parsed;
+        
+        // Trigger re-render / graph calculations
         renderEngine();
     };
 
-    // Event listener: Slider moved
+    // Event listener: Range slider moved
     rangeInput.addEventListener('input', (e) => {
-        updateVal(e.target.value);
+        updateVal(e.target.value, 'range');
     });
 
-    // Event listener: Typed directly into text box or incremented via spinner buttons
+    // Event listener: Typed directly into text box or clicked spinner buttons
     numInput.addEventListener('input', (e) => {
-        updateVal(e.target.value);
+        updateVal(e.target.value, 'num');
     });
 
     item.appendChild(meta);
