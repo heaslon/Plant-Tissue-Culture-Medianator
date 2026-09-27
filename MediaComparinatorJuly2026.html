@@ -1155,28 +1155,33 @@
         if (tabName === 'macro') {
             ALL_MACRO_SALTS.forEach(salt => {
                 const isNpk = ['NH4NO3', 'KNO3', 'KH2PO4', 'NH4H2PO4'].includes(salt);
-                const cap = isNpk ? 5000 : 3000;
+                const defaultCap = isNpk ? 5000 : 3000;
                 const val = customLabRecipe.macroSaltsMass[salt] || 0;
+                const cap = Math.max(defaultCap, Math.ceil(val));
                 grid.appendChild(createSliderElement(salt, val, 0, cap, 1, 'macroSaltsMass'));
             });
         } else if (tabName === 'micro') {
             ALL_MICRO_SALTS.forEach(salt => {
-                const isMajor = ['NaFeEDTA', 'FeNa-EDDHA', 'FeCl3·6H2O', 'FeSO4·7H2O', 'MnSO4·H2O', 'MnCl2·4H2O', 'ZnSO4·7H2O', 'Zn(NO3)2·6H2O', 'H3BO3'].includes(salt);
-                const cap = isMajor ? 500 : 50;
-                const step = isMajor ? 0.1 : 0.01;
+                const isMajor = ['NaFeEDTA', 'FeNa-EDDHA', 'Na2EDTA·2H2O', 'FeCl3·6H2O', 'FeSO4·7H2O', 'MnSO4·H2O', 'MnCl2·4H2O', 'ZnSO4·7H2O', 'Zn(NO3)2·6H2O', 'H3BO3'].includes(salt);
+                const defaultCap = isMajor ? 500 : 50;
+                const step = isMajor ? 0.1 : 0.001;
                 
-                const isTrace = [ "KI", "CuSO4·5H2O", "Na2MoO4·2H2O", "CoCl2·6H2O", "NiSO4·6H2O"].includes(salt);
+                const isTrace = ["KI", "CuSO4·5H2O", "Na2MoO4·2H2O", "CoCl2·6H2O", "NiSO4·6H2O"].includes(salt);
                 const val = isTrace ? (customLabRecipe.microSaltsTraceMass[salt] || 0) : (customLabRecipe.microSaltsAbundantMass[salt] || 0);
                 const targetKey = isTrace ? 'microSaltsTraceMass' : 'microSaltsAbundantMass';
+                const cap = Math.max(defaultCap, Math.ceil(val));
+                
                 grid.appendChild(createSliderElement(salt, val, 0, cap, step, targetKey));
             });
         } else if (tabName === 'organic') {
             ALL_VITAMINS.forEach(vit => {
                 const isAbundant = ['Myo-Inositol', 'Adenine Hemisulfate', 'Casein Hydrolysate', 'Peptone', 'Yeast Extract'].includes(vit);
-                const cap = isAbundant ? 1000 : 20;
+                const defaultCap = isAbundant ? 1000 : 20;
                 const step = isAbundant ? 1 : 0.1;
                 const val = isAbundant ? (customLabRecipe.vitAbundantMass[vit] || 0) : (customLabRecipe.vitTraceMass[vit] || 0);
                 const targetKey = isAbundant ? 'vitAbundantMass' : 'vitTraceMass';
+                const cap = Math.max(defaultCap, Math.ceil(val));
+                
                 grid.appendChild(createSliderElement(vit, val, 0, cap, step, targetKey));
             });
         }
@@ -1185,76 +1190,87 @@
     }
 
     function createSliderElement(name, value, min, max, step, targetGroupKey) {
-		const item = document.createElement('div');
-		item.className = 'slider-item';
+    const item = document.createElement('div');
+    item.className = 'slider-item';
 
-		const meta = document.createElement('div');
-		meta.className = 'slider-meta';
-		
-		// Label for the compound
-		const nameSpan = document.createElement('span');
-		nameSpan.innerText = formatDisplayLabel(name);
+    const meta = document.createElement('div');
+    meta.className = 'slider-meta';
+    
+    // Label for the compound
+    const nameSpan = document.createElement('span');
+    nameSpan.innerText = formatDisplayLabel(name);
 
-		// Container for number input + unit label
-		const inputWrapper = document.createElement('div');
-		inputWrapper.style.display = 'flex';
-		inputWrapper.style.alignItems = 'center';
-		inputWrapper.style.gap = '4px';
+    // Container for number input + unit label
+    const inputWrapper = document.createElement('div');
+    inputWrapper.style.display = 'flex';
+    inputWrapper.style.alignItems = 'center';
+    inputWrapper.style.gap = '4px';
 
-		// Direct numeric entry input
-		const numInput = document.createElement('input');
-		numInput.type = 'number';
-		numInput.className = 'slider-meta-input';
-		numInput.min = min;
-		numInput.max = max;
-		numInput.step = step;
-		numInput.value = value;
+    // Direct numeric entry input
+    const numInput = document.createElement('input');
+    numInput.type = 'number';
+    numInput.className = 'slider-meta-input';
+    numInput.min = min;
+    // Unset initial numInput.max so native up-arrow spinner can step past default range
+    numInput.step = step;
+    numInput.value = value;
 
-		const unitSpan = document.createElement('span');
-		unitSpan.innerText = 'mg/L';
+    const unitSpan = document.createElement('span');
+    unitSpan.innerText = 'mg/L';
 
-		inputWrapper.appendChild(numInput);
-		inputWrapper.appendChild(unitSpan);
+    inputWrapper.appendChild(numInput);
+    inputWrapper.appendChild(unitSpan);
 
-		meta.appendChild(nameSpan);
-		meta.appendChild(inputWrapper);
-		
-		// Range slider
-		const rangeInput = document.createElement('input');
-		rangeInput.type = 'range';
-		rangeInput.min = min;
-		rangeInput.max = max;
-		rangeInput.step = step;
-		rangeInput.value = value;
+    meta.appendChild(nameSpan);
+    meta.appendChild(inputWrapper);
+    
+    // Determine effective range max based on initial value
+    let currentMax = Math.max(max, Math.ceil(value));
 
-		// Helper to sync values and trigger graph updates
-		const updateVal = (newVal) => {
-			let parsed = parseFloat(newVal);
-			if (isNaN(parsed)) parsed = 0;
-			
-			// Clamp numerical typing within slider min/max bounds
-			parsed = Math.max(min, Math.min(max, parsed));
+    // Range slider
+    const rangeInput = document.createElement('input');
+    rangeInput.type = 'range';
+    rangeInput.min = min;
+    rangeInput.max = currentMax;
+    rangeInput.step = step;
+    rangeInput.value = value;
 
-			customLabRecipe[targetGroupKey][name] = parsed;
-			renderEngine();
-		};
+    // Helper to sync values and trigger graph updates
+    const updateVal = (newVal) => {
+        let parsed = parseFloat(newVal);
+        if (isNaN(parsed)) parsed = 0;
+        
+        // Enforce minimum, but allow value to scale upward freely
+        parsed = Math.max(min, parsed);
 
-		// Event listener: Slider moved
-		rangeInput.addEventListener('input', (e) => {
-			numInput.value = e.target.value;
-			updateVal(e.target.value);
-		});
+        // Dynamically expand slider and input max if typed/stepped value exceeds current upper bound
+        if (parsed > currentMax) {
+            currentMax = Math.ceil(parsed);
+            rangeInput.max = currentMax;
+            numInput.max = currentMax;
+        }
 
-		// Event listener: Typed directly into text box
-		numInput.addEventListener('input', (e) => {
-			rangeInput.value = e.target.value || 0;
-			updateVal(e.target.value);
-		});
+        rangeInput.value = parsed;
+        numInput.value = parsed;
 
-		item.appendChild(meta);
-		item.appendChild(rangeInput);
-		return item;
-	}
+        customLabRecipe[targetGroupKey][name] = parsed;
+        renderEngine();
+    };
+
+    // Event listener: Slider moved
+    rangeInput.addEventListener('input', (e) => {
+        updateVal(e.target.value);
+    });
+
+    // Event listener: Typed directly into text box or incremented via spinner buttons
+    numInput.addEventListener('input', (e) => {
+        updateVal(e.target.value);
+    });
+
+    item.appendChild(meta);
+    item.appendChild(rangeInput);
+    return item;
+}
 
     document.getElementById('labExitBtn').addEventListener('click', () => {
         labActive = false;
